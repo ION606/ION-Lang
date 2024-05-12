@@ -1,7 +1,7 @@
 import { Expression } from "./Expression.js";
 import { customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
-import { ReservedFunctions, ReservedKeys } from "./reservedKeys.js";
+import { ReservedFunctions, ReservedKeys } from "../reservedKeys.js";
 
 export class customFunction {
     fname: string;

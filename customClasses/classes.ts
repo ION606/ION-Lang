@@ -1,6 +1,6 @@
 import { Expression } from "./Expression.js";
 import { FunctionCall, customFunction } from "./Function.js";
-import { parser } from "./parser.js";
+import { parser } from "../parser.js";
 
 export class Include {
     target: string;

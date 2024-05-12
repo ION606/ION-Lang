@@ -1,8 +1,8 @@
 import fs from 'fs';
-import { remQuotes } from "./helpers.js";
-import { Include, customVar, customTypes } from './classes.js';
-import { Expression } from "./Expression.js";
-import { FunctionCall, customFunction } from "./Function.js";
+import { remQuotes } from "./customClasses/helpers.js";
+import { Include, customVar, customTypes } from './customClasses/classes.js';
+import { Expression } from "./customClasses/Expression.js";
+import { FunctionCall, customFunction } from "./customClasses/Function.js";
 
 const openingCharacters = ['(', '[', '{'];
 const closingCharacters = { '(': ')', '[': ']', '{': '}' };
