@@ -7,7 +7,7 @@ function main() {
     if (instArgs.length) handleInstArgs(instArgs);
     
     const [, , fname] = process.argv;
-    readAndParse(fname);
+    console.log(JSON.stringify(readAndParse(fname)));
 }
 
 main();

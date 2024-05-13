@@ -1,3 +1,4 @@
+import { FunctionCall, filterByFunction } from "./Function.js";
 import { customTypes, customVar, isCustomExpressionTypes, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
 
@@ -125,11 +126,30 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
     const opBraceCount = expStr.length - expStr.replace("(", "").length, clsBraceCount = expStr.length - expStr.replace(")", "").length;
     if (opBraceCount !== clsBraceCount) throw `PARENTHESIS DO NOT MATCH IN ${expStr}!`;
 
+    // const fRegex = /^[A-z].*\([^)]*\)/g;
+    if ((/^[A-z].*\([^)]*\)/g).test(expStr)) {
+        let fMatch;
+        const fRegex = /\b\w+\([^)]*\)/g;
+        
+        // this is a method (AKA a FunctionCall)
+        while ((fMatch = fRegex.exec(expStr)) !== null) {
+            if (fMatch.index === fRegex.lastIndex) fRegex.lastIndex++;
+            const v = new FunctionCall(fMatch[0], context, parser).ret as [customVar | Expression];
+
+            if (fMatch[0]) {
+                expStr = expStr.substring(0, fMatch.index) + v + expStr.substring(fMatch.index + fMatch[0].length);
+                fRegex.lastIndex = 0;
+            }
+        }
+    }
+
     // find anything between the parenthesis
     const regex = /\((?:[^)(]|\((?:[^)(]|\((?:[^)(]|\([^)(]*\))*\))*\))*\)/g;
     let match;
 
     if (regex.test(expStr)) {
+        regex.lastIndex = 0;
+        
         while ((match = regex.exec(expStr)) !== null) {
             // avoid infinite loops with zero-width matches
             if (match.index === regex.lastIndex) regex.lastIndex++;
@@ -140,7 +160,7 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
                 expStr = expStr.substring(0, match.index) + parsed[0].val + expStr.substring(match.index + match[0].length);
                 regex.lastIndex = 0;
             }
-            else console.warn(`not a match "${parsed[0]}`);
+            else console.warn(`not a match "${JSON.stringify(parsed[0])}"`);
         }
 
         return evalExpression(expStr, context);
@@ -168,13 +188,20 @@ export class Expression {
         if (isMath) {
             this.val = parseMathExpression(expStr, context, parser);
         }
-        else if ((/^[A-Za-z0-9]+$/).test(expStr)) {
-            this.val = expStr;
+        else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {
+            // this is most likely a variable
+            const ind = findVarInd(context, expStr);
+            if (ind === -1) throw `VARIABLE "${expStr}" NOT FOUND!`;
+            this.val = (context[ind] as customVar).val?.val;
         }
         else if (Array.isArray(expStr)) {
             this.val = expStr.split(",").map(o => o.trim());
         }
-
-        else throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
+        else if ((/^[A-z].*\(.*\)/).test(expStr)) {
+            // this is a method (AKA a FunctionCall)
+            this.val = new FunctionCall(expStr, context, parser).ret;
+        }
+        else if (!Number.isNaN(Number(expStr))) this.val = Number(expStr);
+        else this.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
     }
 }

@@ -34,7 +34,7 @@ export interface parserType {
 export type customTypes = Include | customVar | customFunction | FunctionCall | Expression
 export type customExpressionTypes = customVar | Expression;
 
-function isCustomVar(obj: any): obj is customVar {
+export function isCustomVar(obj: any): obj is customVar {
     return obj && typeof obj.key === 'string' && 'value' in obj;
 }
 

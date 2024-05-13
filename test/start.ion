@@ -1,17 +1,21 @@
 #include "temp.ion";
 
-func add(txt) {
-    const a = txt + 1 / 2;
-    error("hewo uwu")
+func add(a) {
+    return a + 1;
 }
 
 
 func main() {
     const a = (2 + 3) - ((1 + 1) + (1 + 1));
+    error(a);
+
     print("hallo!\n");
     print(a);
     error(a + 1);
     /* comment */
+    const v = 3;
+    const b = add(v) / add(2);
+    print(b, v);
 }
 
 const b = "hi there!";

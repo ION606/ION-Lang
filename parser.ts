@@ -1,6 +1,6 @@
 import fs from 'fs';
-import { remQuotes } from "./customClasses/helpers.js";
-import { Include, customVar, customTypes } from './customClasses/classes.js';
+import { findVarInd, remQuotes } from "./customClasses/helpers.js";
+import { Include, customVar, customTypes, isCustomExpressionTypes, isCustomVar } from './customClasses/classes.js';
 import { Expression } from "./customClasses/Expression.js";
 import { FunctionCall, customFunction } from "./customClasses/Function.js";
 
@@ -17,18 +17,19 @@ const declairators = ['create', 'make', 'const', 'var'];
 export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
-    const toExec: customTypes[] = [],
-        splitBySC = dataRaw.split(";");
-
+    const splitBySC = dataRaw.split(";"),
+        toRet = [];
+    let contextFull: customTypes[] = context;
 
     for (let i = 0; i < splitBySC.length; i++) {
-        let line = splitBySC[i];
-        let currentBlock = line + ";";
+        const toExec: customTypes[] = [];
+
+        let line = splitBySC[i],
+            currentBlock = line + ";";
 
         const words = line.trim().split(" ").filter(o => o?.length),
             key = words.shift(),
-            args = words.map(remQuotes),
-            contextFull: customTypes[] = context.concat(toExec);
+            args = words.map(remQuotes);
 
         if (!key) continue;
 
@@ -72,10 +73,20 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 else newWords.push(word);
             }
 
-            toExec.push(new customVar(newWords, contextFull));
+            const cv = new customVar(newWords, contextFull);
+            const cvInd = findVarInd(contextFull, cv.name || '');
+            
+            if (cvInd !== -1) {
+                contextFull[cvInd] = cv;
+            }
+            else toExec.push(cv);
         }
         else if ((/^[A-Za-z]+\(/).test(key)) {
-            toExec.push(new FunctionCall(line, contextFull, parser));
+            const f = new FunctionCall(line, contextFull, parser);
+            toExec.push(f.ret);
+        }
+        else if (key === 'return') {
+            return [new Expression(args.join(' '), contextFull, parser).val];
         }
         else {
             // check for useless code
@@ -95,15 +106,20 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                     splitBySC.splice(i + 1, 0, line.substring(c + 2));
                 }
             }
-            else toExec.push(new Expression(key, contextFull, parser));
+            else {
+                // this is a single operation (like math)
+                return [new Expression(key, contextFull, parser)];
+            }
         }
+
+        contextFull = contextFull.concat(toExec);
     }
 
-    return toExec;
+    return contextFull;
 }
 
 
 export const readAndParse = (fname: string) => {
     if (!fs.existsSync(fname)) throw `FILE "${fname}" NOT FOUND!\n(maybe you forgot to provide an absolute path?)`;
-    parser(fs.readFileSync(fname).toString(), []);
+    return parser(fs.readFileSync(fname).toString(), []);
 }

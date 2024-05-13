@@ -26,14 +26,15 @@ export class customFunction {
     }
 }
 
-function filterByFunction(o: customFunction | customTypes): o is customFunction {
+export function filterByFunction(o: customFunction | customTypes): o is customFunction {
     return o instanceof customFunction
 }
 
 
 export class FunctionCall {
     func: string;
-    data: string[]
+    data: string[];
+    ret: any;
 
     // call = () => this.fPointer(this.data);
     /**
@@ -65,7 +66,7 @@ export class FunctionCall {
                 return v.val?.val;
             });
 
-            f(...inp);
+            this.ret = f(...inp);
             return this;
         }
 
@@ -79,7 +80,6 @@ export class FunctionCall {
                 const oldInd = findVarInd(context, f.params[pInd]),  // context.findIndex(o => ((o instanceof customVar) && o.name === f.params[pInd])),
                     newVar = new customVar([f.params[pInd], '=', this.data[pInd]], context);
                 if (oldInd !== -1) {
-                    delete context[oldInd];
                     context[oldInd] = newVar;
                 }
                 else context.push(newVar);
@@ -88,9 +88,6 @@ export class FunctionCall {
 
         // call the function
         const res = parser(f.fBody, context);
-
-        console.log(context)
-        console.log("CALLED", f)
-        console.log(res);
+        this.ret = res;
     }
 }
