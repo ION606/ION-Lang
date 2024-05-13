@@ -14,9 +14,11 @@ export class Include {
 export class customVar {
     name?: string;
     val?: Expression;
+    type: string;
 
-    constructor(inps: string[], context: customTypes[]) {
+    constructor(inps: string[], context: customTypes[], key: string | undefined = 'let') {
         const j = inps.join("");
+        this.type = key;
         // check if it's just "name = thing";
         if ((/^[A-Za-z]+\=.*/).test(j)) {
             const strsplit = j.split('=');

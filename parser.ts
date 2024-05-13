@@ -17,8 +17,7 @@ const declairators = ['create', 'make', 'const', 'var'];
 export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
-    const splitBySC = dataRaw.split(";"),
-        toRet = [];
+    const splitBySC = dataRaw.split(";");
     let contextFull: customTypes[] = context;
 
     for (let i = 0; i < splitBySC.length; i++) {
@@ -73,9 +72,9 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 else newWords.push(word);
             }
 
-            const cv = new customVar(newWords, contextFull);
+            const cv = new customVar(newWords, contextFull, key);
             const cvInd = findVarInd(contextFull, cv.name || '');
-            
+
             if (cvInd !== -1) {
                 contextFull[cvInd] = cv;
             }
@@ -107,8 +106,20 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 }
             }
             else {
+                if ((/^\w+\s?\=\s?.+/).test(line.trim())) {
+                    // this is a re-assignement
+                    const vName = key.split('=')[0];
+                    const vInd = findVarInd(contextFull, vName);
+                    if (vInd === -1) throw `UNKNOWN VARIABLE "${line.trim()}"!`;
+                    const v = contextFull[vInd] as customVar;
+
+                    if (v.type === 'const') throw `CAN NOT REDECLAIR CONST VAR "${vName}"!`;
+
+                    // there has to be a better way
+                    v.val = new Expression(words.join('').substring(1), contextFull, parser);
+                }
                 // this is a single operation (like math)
-                return [new Expression(key, contextFull, parser)];
+                else return [new Expression(key, contextFull, parser)];
             }
         }
 
