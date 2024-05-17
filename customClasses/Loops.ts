@@ -21,18 +21,24 @@ export class CustomFor {
         // split the loop
         const [sCond, checkCond, incCond] = conditional.split(';').map(o => o.trim());
 
-        // initialize the loop var
-        context = parser(sCond, context);
+        // save the loop var
         let vInd = findVarInd(context, sCond.split(' ')[1]);
         if (vInd === -1) throw `LOOP ERROR: VARIABLE "${sCond.split(' ')[1]}" NOT FOUND!`;
         let v = context[vInd] as customVar;
+        const vOld = v;
 
+        // initialize the loop var
+        context = parser(sCond, context);
+        vInd = findVarInd(context, sCond.split(' ')[1]);
+        if (vInd === -1) throw `LOOP ERROR: VARIABLE "${sCond.split(' ')[1]}" NOT FOUND!`;
+        v = context[vInd] as customVar;
+        
         let runCond = handleConditional(checkCond, context, parser);
         let i = v.val?.val;
 
         const fBody = data.substring(data.indexOf("{") + 1, data.length - 2).trim();
 
-        while (runCond.val) {            
+        while (runCond.val) {
             context = parser(fBody, context);
 
             // loop stuff
@@ -43,7 +49,8 @@ export class CustomFor {
             i = v.val?.val;
         }
 
-        throw [sCond, checkCond, incCond];
+        context[vInd] = vOld;
+        return context;
     }
 }
 

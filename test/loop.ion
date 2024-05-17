@@ -1,7 +1,13 @@
-let i = 0;
+let i = 10;
 i++;
+
+func a(txt) {
+    print(txt);
+}
+
 for (let i = 0; i < 12; i++) {
     print(i);
 }
 
 error(i);
+print("AAAAAAAAAAAAAAAAAAAAAAAAA");

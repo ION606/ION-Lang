@@ -15,14 +15,15 @@ import { handleLoop } from './customClasses/Loops.js';
 export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
-    const splitBySC = dataRaw.split(";");
+    const splitBySC = dataRaw.split(";").filter(o => o);
     let contextFull: customTypes[] = context;
 
     for (let i = 0; i < splitBySC.length; i++) {
+        // console.log('===================\n', splitBySC, i, '\n=====================')
         const toExec: customTypes[] = [];
 
-        let line = splitBySC[i],
-            currentBlock = line + ";";
+        let line = splitBySC[i]?.trim(),
+            currentBlock = "";
 
         const words = line.trim().split(" ").filter(o => o?.length),
             key = words.shift()?.trim(),
@@ -38,10 +39,10 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
             let c = 0;
             while (line[c] != "}") {
                 if (c > line.length) {
+                    currentBlock += line + ";";
                     c = 0;
                     i++
                     line = splitBySC[i];
-                    currentBlock += line + ";";
                 }
                 else c++;
             }
@@ -51,10 +52,15 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 currentBlock += line.substring(0, c);
                 splitBySC.splice(i + 1, 0, line.substring(c + 1));
             }
+            else currentBlock += "}";
 
             if (pseudoFuncs.includes(key)) {
-                if (['if', 'else'].includes(key)) toExec.push(handleConditional(currentBlock.trim(), contextFull, parser));
-                else if (['while', 'for'].includes(key)) toExec.push(handleLoop(currentBlock.trim(), contextFull, parser))
+                if (['if', 'else'].includes(key)) {
+                    if (handleConditional(currentBlock.trim(), contextFull, parser)) {
+                        // ???????
+                    }
+                }
+                else if (['while', 'for'].includes(key)) contextFull = handleLoop(currentBlock.trim(), contextFull, parser);
             }
             else {
                 const funcStr = currentBlock.trim();
@@ -63,7 +69,7 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
         }
         else if ((/^[A-Za-z]([\w]+)?\s?\(/).test(line)) {
             const f = new FunctionCall(line, contextFull, parser);
-            toExec.push(f.ret);
+            if (f.ret) toExec.push(f.ret);
         }
         else if (key === 'return') {
             return [new Expression(args.join(' '), contextFull, parser).val];
@@ -139,7 +145,7 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
             }
         }
 
-        contextFull = contextFull.concat(toExec);
+        contextFull = contextFull.concat(toExec).filter(o => o);
     }
 
     return contextFull;
