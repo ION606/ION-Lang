@@ -130,7 +130,7 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
     if ((/^[A-z].*\([^)]*\)/g).test(expStr)) {
         let fMatch;
         const fRegex = /\b\w+\([^)]*\)/g;
-        
+
         // this is a method (AKA a FunctionCall)
         while ((fMatch = fRegex.exec(expStr)) !== null) {
             if (fMatch.index === fRegex.lastIndex) fRegex.lastIndex++;
@@ -149,7 +149,7 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
 
     if (regex.test(expStr)) {
         regex.lastIndex = 0;
-        
+
         while ((match = regex.exec(expStr)) !== null) {
             // avoid infinite loops with zero-width matches
             if (match.index === regex.lastIndex) regex.lastIndex++;
@@ -176,7 +176,7 @@ export class Expression {
 
     constructor(expStr: string, context: customTypes[], parser: parserType) {
         if (!expStr) return;
-
+        
         // deal with quotes
         if ((/^(['"])(?:(?!(?<=\\)\1).)*\1$/).test(expStr)) {
             this.val = expStr.substring(1, expStr.length - 1);
@@ -188,7 +188,7 @@ export class Expression {
         if (isMath) {
             this.val = parseMathExpression(expStr, context, parser);
         }
-        else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {
+        else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {            
             // this is most likely a variable
             const ind = findVarInd(context, expStr);
             if (ind === -1) throw `VARIABLE "${expStr}" NOT FOUND!`;

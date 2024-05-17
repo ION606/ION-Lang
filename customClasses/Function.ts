@@ -45,7 +45,6 @@ export class FunctionCall {
         this.data = data.split("(")[1].split(")")[0]?.split(',')?.map((o: string) => o?.trim());
 
         // find the function
-        const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === this.func)) as customFunction | undefined;
         if (Object.keys(ReservedFunctions).includes(this.func)) {
             const f = ReservedFunctions[this.func as keyof typeof ReservedFunctions];
 
@@ -70,6 +69,7 @@ export class FunctionCall {
             return this;
         }
 
+        const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === this.func)) as customFunction | undefined;
         if (!f) throw `FUNCTION "${this.func}" NOT FOUND!`;
 
         if (this.data) {

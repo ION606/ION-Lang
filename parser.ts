@@ -3,11 +3,9 @@ import { findVarInd, remQuotes } from "./customClasses/helpers.js";
 import { Include, customVar, customTypes, isCustomExpressionTypes, isCustomVar } from './customClasses/classes.js';
 import { Expression } from "./customClasses/Expression.js";
 import { FunctionCall, customFunction } from "./customClasses/Function.js";
-
-const openingCharacters = ['(', '[', '{'];
-const closingCharacters = { '(': ')', '[': ']', '{': '}' };
-const declairators = ['create', 'make', 'const', 'var'];
-
+import { declairators, pseudoFuncs } from "./reservedKeys.js";
+import { incSymbs, handleConditional } from './handleConditional.js';
+import { handleLoop } from './customClasses/Loops.js';
 
 /**
  * @param {string} dataRaw
@@ -27,13 +25,15 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
             currentBlock = line + ";";
 
         const words = line.trim().split(" ").filter(o => o?.length),
-            key = words.shift(),
+            key = words.shift()?.trim(),
             args = words.map(remQuotes);
 
         if (!key) continue;
 
         if (key === '#include') toExec.push(new Include(args[0]));
-        else if (key === 'func') {
+        else if (key === 'func' || pseudoFuncs.includes(key.split('(')[0])) {
+            // removed (/^[A-Za-z]([\w]+)?\s?\(/).test(line) && because 
+
             // scan until you reach the end brace
             let c = 0;
             while (line[c] != "}") {
@@ -52,8 +52,31 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 splitBySC.splice(i + 1, 0, line.substring(c + 1));
             }
 
-            const funcStr = currentBlock.trim();
-            toExec.push(new customFunction(funcStr, contextFull, parser));
+            if (pseudoFuncs.includes(key)) {
+                if (['if', 'else'].includes(key)) toExec.push(handleConditional(currentBlock.trim(), contextFull, parser));
+                else if (['while', 'for'].includes(key)) toExec.push(handleLoop(currentBlock.trim(), contextFull, parser))
+            }
+            else {
+                const funcStr = currentBlock.trim();
+                toExec.push(new customFunction(funcStr, contextFull, parser));
+            }
+        }
+        else if ((/^[A-Za-z]([\w]+)?\s?\(/).test(line)) {
+            const f = new FunctionCall(line, contextFull, parser);
+            toExec.push(f.ret);
+        }
+        else if (key === 'return') {
+            return [new Expression(args.join(' '), contextFull, parser).val];
+        }
+        else if (incSymbs.find(s => key.includes(s))) {
+            const symb = incSymbs.find(s => key.includes(s));
+            if (!symb) throw 'what';
+
+            const cvInd = findVarInd(contextFull, key.replace(symb, '').trim());
+            if (cvInd == -1) throw `VARIABLE "${key}" NOT FOUND!`;
+
+            const v = new customVar([key], contextFull, (contextFull[cvInd] as customVar).type);
+            contextFull[cvInd] = v;
         }
         else if (declairators.includes(key)) {
             // check for a string
@@ -79,13 +102,6 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 contextFull[cvInd] = cv;
             }
             else toExec.push(cv);
-        }
-        else if ((/^[A-Za-z]+\(/).test(key)) {
-            const f = new FunctionCall(line, contextFull, parser);
-            toExec.push(f.ret);
-        }
-        else if (key === 'return') {
-            return [new Expression(args.join(' '), contextFull, parser).val];
         }
         else {
             // check for useless code
