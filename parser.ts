@@ -19,7 +19,6 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
     let contextFull: customTypes[] = context;
 
     for (let i = 0; i < splitBySC.length; i++) {
-        // console.log('===================\n', splitBySC, i, '\n=====================')
         const toExec: customTypes[] = [];
 
         let line = splitBySC[i]?.trim(),
@@ -52,7 +51,8 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
                 currentBlock += line.substring(0, c);
                 splitBySC.splice(i + 1, 0, line.substring(c + 1));
             }
-            else currentBlock += "}";
+            
+            currentBlock += "}";
 
             if (pseudoFuncs.includes(key)) {
                 if (['if', 'else'].includes(key)) {

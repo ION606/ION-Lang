@@ -1,4 +1,4 @@
-let i = 10;
+let i = 5;
 i++;
 
 func a(txt) {
@@ -11,3 +11,10 @@ for (let i = 0; i < 12; i++) {
 
 error(i);
 print("AAAAAAAAAAAAAAAAAAAAAAAAA");
+
+i++;
+
+while (i < 20) {
+    error(i);
+    i++;
+}

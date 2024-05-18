@@ -8,12 +8,13 @@ export function handleLoop(data: string, context: customTypes[], parser: parserT
     let match = (/.*\(/).exec(data);
     if (!match) throw `INCORRECT FUNCTION "${data}"!`;
 
-    if (match[0].trim().startsWith('for')) return new CustomFor(data, context, parser);  
+    if (match[0].trim().startsWith('for')) return CustomFor.runLoop(data, context, parser);
+    else return CustomWhile.runLoop(data, context, parser);
 }
 
 
 export class CustomFor {
-    constructor(data: string, context: customTypes[], parser: parserType) {
+    static runLoop(data: string, context: customTypes[], parser: parserType) {
         const conditional = data.match(/\(([^)]*)\)/)?.at(1);
 
         if (!conditional) throw `IMPROPERLY FORMATTED LOOP "${data}"`;
@@ -57,7 +58,19 @@ export class CustomFor {
 
 
 export class CustomWhile {
-    constructor(data: string, context: customTypes[], parser: parserType) {
-        console.log(data);
+    static runLoop(data: string, context: customTypes[], parser: parserType) {
+        const conditional = data.match(/\(([^)]*)\)/)?.at(1);
+        if (!conditional) throw `IMPROPERLY FORMATTED LOOP "${data}"`;
+
+        // throw [conditional, handleConditional(conditional, context, parser), context];
+        let runCond = handleConditional(conditional, context, parser);
+        while (runCond.val) {
+            const fBody = data.substring(data.indexOf("{") + 1, data.length - 2).trim();
+            context = parser(fBody, context);
+
+            runCond = handleConditional(conditional, context, parser);
+        }
+
+        return context;
     }
 }
