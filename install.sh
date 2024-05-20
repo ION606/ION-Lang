@@ -1,10 +1,7 @@
 #!/bin/bash
 
-# Define the URL of the repository and the path to the ION file
-REPO_URL="https://github.com/ION606/ION-Lang.git"
-
 # Clone the repository
-git clone "$REPO_URL"
+git clone "https://github.com/ION606/ION-Lang.git"
 # Change to the cloned repository directory
 cd "ION-Lang" || exit
 
