@@ -1,0 +1,14 @@
+let b = 16;
+if (b < 10) {
+    error("YAY");
+}
+
+if (b < 12) {
+    error("WEEEEEEEEEEEE");
+}
+else if (b < 15) {
+    print("YAY2");
+}
+else{
+    print("NAUR");
+}

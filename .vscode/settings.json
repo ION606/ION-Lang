@@ -1,2 +1,10 @@
 {
+    "material-icon-theme.files.customClones": [
+        {
+            "name": "ion-lang",
+            "base": "mocha",
+            "color": "deep-purple-A100",
+            "fileExtensions": ["ion"],
+        },
+    ],
 }

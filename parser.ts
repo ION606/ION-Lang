@@ -1,11 +1,12 @@
 import fs from 'fs';
-import { findVarInd, remQuotes } from "./customClasses/helpers.js";
-import { Include, customVar, customTypes, isCustomExpressionTypes, isCustomVar } from './customClasses/classes.js';
+import { findVarInd, loopToClosingBracket, remQuotes } from "./customClasses/helpers.js";
+import { Include, customVar, customTypes } from './customClasses/classes.js';
 import { Expression } from "./customClasses/Expression.js";
 import { FunctionCall, customFunction } from "./customClasses/Function.js";
 import { declairators, pseudoFuncs } from "./reservedKeys.js";
 import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
+
 
 /**
  * @param {string} dataRaw
@@ -15,52 +16,70 @@ import { handleLoop } from './customClasses/Loops.js';
 export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
-    const splitBySC = dataRaw.split(";").filter(o => o);
+    let splitBySC = dataRaw.split(";").filter(o => o);
     let contextFull: customTypes[] = context;
 
     for (let i = 0; i < splitBySC.length; i++) {
         const toExec: customTypes[] = [];
 
         let line = splitBySC[i]?.trim(),
-            currentBlock = "";
-
-        const words = line.trim().split(" ").filter(o => o?.length),
+            currentBlock = "",
+            words = line.trim().split(" ").filter(o => o?.length),
             key = words.shift()?.trim(),
             args = words.map(remQuotes);
+
+        if (key?.startsWith("}")) {
+            key = key.substring(key.indexOf("}") + 1);
+            key = key.trim();
+        }
 
         if (!key) continue;
 
         if (key === '#include') toExec.push(new Include(args[0]));
+        else if (key.startsWith('if') || key.startsWith('else')) {
+            // go until you reach the final condition
+            let k2 = key.substring(0, key.indexOf("{"));
+            const conditionalChain = [];
+
+            // account for first if, else if's and else's
+            while (k2.startsWith('else') || !conditionalChain.length) {
+                ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, "", i));
+                conditionalChain.push(currentBlock.trim());
+
+                // mimick the "for" loop
+                i++;
+
+                line = splitBySC[i];
+                k2 = line.trim().split(" ")[0];
+            }
+
+            // otherwise the loop will skip the next thing
+            i--;
+
+
+            // check initial condition, then keep going through any "else's"
+            for (const condFull of conditionalChain) {
+                const conditional = condFull.match(/\(([^)]*)\)/)?.at(1);
+                if (!conditional) throw `IMPROPERLY FORMATTED CONDITIONAL "${condFull}"`;
+
+                if ((/^(else)\s*?\{/).test(condFull) || handleConditional(conditional, contextFull, parser).val) {
+                    // add to execution order
+                    const body = condFull.match(/\{[^\}]*/)?.at(0)?.substring(1);
+                    if (!body) throw "EMPTY CONDITIONALS NOT ALLOWED!";
+
+                    splitBySC.splice(i + 1, 0, body?.trim());
+                    break;
+                }
+            }
+        }
         else if (key === 'func' || pseudoFuncs.includes(key.split('(')[0])) {
             // removed (/^[A-Za-z]([\w]+)?\s?\(/).test(line) && because 
 
             // scan until you reach the end brace
-            let c = 0;
-            while (line[c] != "}") {
-                if (c > line.length) {
-                    currentBlock += line + ";";
-                    c = 0;
-                    i++
-                    line = splitBySC[i];
-                }
-                else c++;
-            }
+            ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, currentBlock, i));
 
-            if (c > 0) {
-                // get partial line, make the rest into a new thing
-                currentBlock += line.substring(0, c);
-                splitBySC.splice(i + 1, 0, line.substring(c + 1));
-            }
-            
-            currentBlock += "}";
-
-            if (pseudoFuncs.includes(key)) {
-                if (['if', 'else'].includes(key)) {
-                    if (handleConditional(currentBlock.trim(), contextFull, parser)) {
-                        // ???????
-                    }
-                }
-                else if (['while', 'for'].includes(key)) contextFull = handleLoop(currentBlock.trim(), contextFull, parser);
+            if (pseudoFuncs.includes(key) && ['while', 'for'].includes(key)) {
+                contextFull = handleLoop(currentBlock.trim(), contextFull, parser);
             }
             else {
                 const funcStr = currentBlock.trim();

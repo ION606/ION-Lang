@@ -8,6 +8,7 @@ export class Include {
     target: string;
 
     constructor(target: string) {
+        throw target;
         this.target = target.replaceAll('"', "");
     }
 }
