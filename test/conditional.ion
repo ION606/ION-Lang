@@ -1,3 +1,5 @@
+#include "toinclude.ion";
+
 let b = 16;
 if (b < 10) {
     error("YAY");
@@ -9,6 +11,6 @@ if (b < 12) {
 else if (b < 15) {
     print("YAY2");
 }
-else{
+else {
     print("NAUR");
 }

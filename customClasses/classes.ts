@@ -1,15 +1,30 @@
 import { Expression } from "./Expression.js";
 import { FunctionCall, customFunction } from "./Function.js";
-import { parser } from "../parser.js";
-import { handleConditional } from "../handleConditional.js";
+import { parser, readAndParse } from "../parser.js";
 import { findVarInd } from "./helpers.js";
+import fs from 'fs';
+import path from "path";
 
 export class Include {
-    target: string;
+    readContext: customTypes[];
 
-    constructor(target: string) {
-        throw target;
-        this.target = target.replaceAll('"', "");
+    constructor(target: string, context: customTypes[], caller?: string, baseDir?: string) {
+        const fname = target.replaceAll('"', '').replaceAll("'", '');
+
+        if (fname.replace(/^.*[\\/]/, '') === caller?.replace(/^.*[\\/]/, '')) {
+            throw `CYCLIC DEPENDANCY DETECTED BETWEEN "${fname}" AND "${caller}"\n(maybe check your include statements?)`;
+        }
+
+        // console.log(context);
+        console.log(fname, caller);
+
+        // read the target and dump the execution context
+        if (!fs.existsSync(fname) && baseDir) {
+            this.readContext = readAndParse(path.resolve(baseDir, fname), caller);
+        }
+        else {
+            this.readContext = readAndParse(fname, caller);
+        }
     }
 }
 

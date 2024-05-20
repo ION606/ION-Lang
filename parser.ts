@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { findVarInd, loopToClosingBracket, remQuotes } from "./customClasses/helpers.js";
 import { Include, customVar, customTypes } from './customClasses/classes.js';
 import { Expression } from "./customClasses/Expression.js";
@@ -13,7 +14,7 @@ import { handleLoop } from './customClasses/Loops.js';
  * @param {any[]} context
  * @returns 
  */
-export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
+export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirName: string, fname?: string }): customTypes[] {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
     let splitBySC = dataRaw.split(";").filter(o => o);
@@ -35,7 +36,7 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
 
         if (!key) continue;
 
-        if (key === '#include') toExec.push(new Include(args[0]));
+        if (key === '#include') toExec.push(...(new Include(args[0], contextFull, baseDir?.fname, baseDir?.dirName)).readContext);
         else if (key.startsWith('if') || key.startsWith('else')) {
             // go until you reach the final condition
             let k2 = key.substring(0, key.indexOf("{"));
@@ -171,7 +172,7 @@ export function parser(dataRaw: string, context: customTypes[]): customTypes[] {
 }
 
 
-export const readAndParse = (fname: string) => {
+export const readAndParse = (fname: string, calledFrom?:string) => {
     if (!fs.existsSync(fname)) throw `FILE "${fname}" NOT FOUND!\n(maybe you forgot to provide an absolute path?)`;
-    return parser(fs.readFileSync(fname).toString(), []);
+    return parser(fs.readFileSync(fname).toString(), [], { fname: (calledFrom || fname), dirName: path.dirname(fname) });
 }

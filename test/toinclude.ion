@@ -1,0 +1,5 @@
+#include "test/conditional.ion";
+
+func temp() {
+    print("INCLUDED!");
+}
