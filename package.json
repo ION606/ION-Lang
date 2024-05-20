@@ -2,9 +2,14 @@
   "name": "customcompiler",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "tsc && node --trace-uncaught compiledJS/main.js",
+    "prepublishOnly": "npm run build",
+    "relink": "sudo npm unlink ion && sudo npm link"
+  },
+  "bin": {
+    "ion": "compiledJS/main.js"
   },
   "author": "ION606",
   "license": "ISC",

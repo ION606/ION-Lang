@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { handleInstArgs } from "./handleInstArgs.js";
 import { readAndParse } from "./parser.js";
 

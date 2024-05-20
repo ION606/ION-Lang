@@ -1,4 +1,4 @@
-#include "temp.ion";
+#include "toinclude.ion";
 
 func add(a) {
     return a + 1;
