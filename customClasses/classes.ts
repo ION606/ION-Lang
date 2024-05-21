@@ -82,13 +82,8 @@ export interface parserType {
 export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean;
 export type customExpressionTypes = customVar | Expression;
 
-export function isCustomVar(obj: any): obj is customVar {
-    return obj && typeof obj.key === 'string' && 'value' in obj;
-}
-
-function isExpression(obj: any): obj is Expression {
-    return obj instanceof Expression;
-}
+export const isCustomVar = (obj: any): obj is customVar => obj instanceof customVar;
+export const isExpression = (obj: any): obj is Expression => obj instanceof Expression;
 
 export function isCustomExpressionTypes(obj: any): obj is customExpressionTypes {
     return isCustomVar(obj) || isExpression(obj);

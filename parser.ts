@@ -7,6 +7,7 @@ import { FunctionCall, customFunction } from "./customClasses/Function.js";
 import { declairators, pseudoFuncs } from "./reservedKeys.js";
 import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
+import { customThrow } from './customClasses/try_catch_throw.js';
 
 
 /**
@@ -37,6 +38,12 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
         if (!key) continue;
 
         if (key === '#include') toExec.push(...(new Include(args[0], contextFull, baseDir?.fname, baseDir?.dirName)).readContext);
+        else if (key === 'throw') {
+            const err = new customThrow(args, contextFull);
+
+            // check for try/catch later
+            throw err.errstr;
+        }
         else if (key.startsWith('if') || key.startsWith('else')) {
             // go until you reach the final condition
             let k2 = key.substring(0, key.indexOf("{"));

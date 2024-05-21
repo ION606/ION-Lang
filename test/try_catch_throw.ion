@@ -1,8 +1,4 @@
-try {
-    throw "PINKNODDERS";
-}
-catch(err) {
-    error(err);
-}
+const a = 232;
+throw a;
 
 print("I'M OK!");
