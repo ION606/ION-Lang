@@ -4,6 +4,7 @@ import { parser, readAndParse } from "../parser.js";
 import { findVarInd } from "./helpers.js";
 import fs from 'fs';
 import path from "path";
+import { customThrow } from "./try_catch_throw.js";
 
 export class Include {
     readContext: customTypes[];
@@ -79,7 +80,7 @@ export interface parserType {
 }
 
 
-export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean;
+export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean | customThrow;
 export type customExpressionTypes = customVar | Expression;
 
 export const isCustomVar = (obj: any): obj is customVar => obj instanceof customVar;

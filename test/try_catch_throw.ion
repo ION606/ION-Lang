@@ -1,4 +1,11 @@
 const a = 232;
-throw a;
+
+try {
+    error("AAAAAAAAAAA");
+    throw a;
+}
+catch(err) {
+    error(err);
+}
 
 print("I'M OK!");

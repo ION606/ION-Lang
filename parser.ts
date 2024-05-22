@@ -7,7 +7,7 @@ import { FunctionCall, customFunction } from "./customClasses/Function.js";
 import { declairators, pseudoFuncs } from "./reservedKeys.js";
 import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
-import { customThrow } from './customClasses/try_catch_throw.js';
+import { customThrow, try_catch_throw } from './customClasses/try_catch_throw.js';
 
 
 /**
@@ -38,11 +38,22 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
         if (!key) continue;
 
         if (key === '#include') toExec.push(...(new Include(args[0], contextFull, baseDir?.fname, baseDir?.dirName)).readContext);
-        else if (key === 'throw') {
-            const err = new customThrow(args, contextFull);
+        else if (key === 'throw') throw (new customThrow(words, context)).errstr;
+        else if (key === 'try') {
+            let k2 = key.substring(0, key.indexOf("{"));
+            const conditionalChain = [];
 
-            // check for try/catch later
-            throw err.errstr;
+            // copied from "if/else", perhaps abstract to function
+            while (k2.startsWith('catch') || !conditionalChain.length) {
+                ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, "", i));
+                conditionalChain.push(currentBlock.trim());
+                i++;
+                line = splitBySC[i];
+                k2 = line.trim().split(" ")[0];
+            }
+            i--;
+            
+            contextFull = try_catch_throw(conditionalChain, contextFull, parser);
         }
         else if (key.startsWith('if') || key.startsWith('else')) {
             // go until you reach the final condition
