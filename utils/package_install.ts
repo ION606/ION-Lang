@@ -79,6 +79,6 @@ export async function bundlePackage(packageName: string, entryPoint: string) {
         })
     );
 
-    console.info("package compiled!\nPlease upload to https://ion-language-website.onrender.com");
+    console.info("package compiled!\nPlease upload to https://ionlang.ion606.com/");
     process.exit(0);
 }
