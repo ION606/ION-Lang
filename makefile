@@ -20,4 +20,4 @@ install:
 	
 bundle:
 	tsc
-	node --trace-uncaught compiledJS/main.js bundle core test/start.ion
+	node --trace-uncaught compiledJS/main.js bundle test/test.ion

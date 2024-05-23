@@ -13,7 +13,7 @@ function main() {
 
     if (command === 'run') console.log("ret:", readAndParse(fname));
     else if (command === 'install' || command === 'i') installPackage(process.argv.slice(3));
-    else if (command === 'bundle') bundlePackage(process.argv[3], process.argv[4]);
+    else if (command === 'bundle') bundlePackage(process.argv[3]);
     else throw `UNKNOWN COMMAND "${command}"!`;
 }
 

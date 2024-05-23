@@ -49,7 +49,7 @@ function getProcTree(entryPoint: string, p?: string): string[] {
 }
 
 
-export async function bundlePackage(packageName: string, entryPoint: string) {
+export async function bundlePackage(entryPoint: string) {
     const fnames = getProcTree(entryPoint);
     if (fs.existsSync('ionbundle.tgz')) fs.rmSync('ionbundle.tgz');
     if (fs.existsSync('ioninfo.json')) fs.rmSync('ioninfo.json');
@@ -68,10 +68,14 @@ export async function bundlePackage(packageName: string, entryPoint: string) {
         });
     };
 
+    // replace with config file later
+    const packageName = await getStringInput("enter package name: ");
+    if (!packageName) throw "PACKAGE NAME NOT FOUND!";
+
     await tar.c(
         {
             gzip: true,
-            file: 'ionbundle.tgz'
+            file: `${packageName}.tgz`
         },
         fnames.map(f => {
             const NP = f.replace(process.cwd(), '');

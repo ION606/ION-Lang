@@ -3,4 +3,4 @@ compiledJS
 ion_modules
 temp.*
 .ionbundle/
-ionbundle.tgz
+*.tgz
