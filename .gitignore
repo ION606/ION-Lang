@@ -1,3 +1,6 @@
 node_modules
 compiledJS
+ion_modules
 temp.*
+.ionbundle/
+ionbundle.tgz

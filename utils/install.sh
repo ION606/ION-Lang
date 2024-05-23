@@ -11,4 +11,5 @@ npm install
 # Run the relink script
 npm run relink
 
-echo "to run a file, simply use \`ion {PATH_TO_ION_FILE}\`"
+echo "to run a file use \`ion run {PATH_TO_ION_FILE}\`"
+echo "to install a package use \`ion install {PATH_TO_ION_FILE}\` or \`ion i {PATH_TO_ION_FILE}\`"
