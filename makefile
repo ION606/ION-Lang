@@ -16,7 +16,7 @@ error:
 
 install:
 	tsc
-	node --trace-uncaught compiledJS/main.js i fetch
+	node --trace-uncaught compiledJS/main.js i test
 	
 bundle:
 	tsc

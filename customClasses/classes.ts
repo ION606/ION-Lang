@@ -16,16 +16,19 @@ export class Include {
             throw `CYCLIC DEPENDANCY DETECTED BETWEEN "${fname}" AND "${caller}"\n(maybe check your include statements?)`;
         }
 
-        // console.log(context);
-        console.log(fname, caller);
+        let p = path.resolve(baseDir || '.', fname);
+        if (!fs.existsSync(p)) {
+            // try to find a module with that name
+            const fnames = fs.readdirSync('ion_modules');
+            const modName = fnames.find(n => (n === fname));
+            if (!modName) throw `MODULE "${modName}" NOT FOUND!`;
 
-        // read the target and dump the execution context
-        if (!fs.existsSync(fname) && baseDir) {
-            this.readContext = readAndParse(path.resolve(baseDir, fname), caller);
+            const modFolder = path.resolve(process.cwd(), 'ion_modules', modName),
+                modEntryPoint = JSON.parse(fs.readFileSync(path.resolve(modFolder, 'bundleinfo.json')).toString()).entryPoint;
+            p = path.resolve(modFolder, modEntryPoint);
         }
-        else {
-            this.readContext = readAndParse(fname, caller);
-        }
+
+        this.readContext = readAndParse(p, caller);
     }
 }
 

@@ -3,28 +3,50 @@ import fs from 'fs';
 import path from 'path';
 import * as tar from 'tar';
 import * as readline from 'readline';
-import query_string from 'query-string';
+
+
+const downloadFile = async (url: string, filePath: string) => {
+    const writer = fs.createWriteStream(filePath);
+
+    const response = await axios({
+        url,
+        method: 'GET',
+        responseType: 'stream'
+    });
+
+    response.data.pipe(writer);
+
+    return new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+    });
+};
 
 
 export async function installPackage(packageNames: string[]) {
     for (const packageName of packageNames) {
         try {
+            if (!fs.existsSync('.ioninstall')) fs.mkdirSync('.ioninstall');
+
             console.info(`fetching package "${packageName}"...`);
-            const r = await axios.get(`https://raw.githubusercontent.com/The-ION-Language/modules/main/${packageName}.tgz`);
+            const fname = `.ioninstall/${packageName}.tgz`;
+            await downloadFile(`https://github.com/The-ION-Language/modules/raw/main/${packageName}.tgz`, fname);
             console.info("done!");
 
-            const fname = `.ioninstall/${packageName}.tzg`;
-            fs.writeFileSync(fname, r.data);
-
             console.info('extracting package...');
+            const folderName = path.join(process.cwd(), `ion_modules/${packageName}`)
+            if (fs.existsSync(folderName)) fs.rmSync(folderName, { recursive: true });
+
+            fs.mkdirSync(folderName, { recursive: true });
             await tar.x({ f: fname, C: `ion_modules/${packageName}` });
 
             console.info('cleaning up...');
             fs.rmSync(fname);
-            
+
             console.info("done!");
         }
         catch (err) {
+            console.error(err);
             console.error(`UNABLE TO GET MODULE "${packageName}"`);
         }
     }
@@ -51,8 +73,6 @@ function getProcTree(entryPoint: string, p?: string): string[] {
 
 export async function bundlePackage(entryPoint: string) {
     const fnames = getProcTree(entryPoint);
-    if (fs.existsSync('ionbundle.tgz')) fs.rmSync('ionbundle.tgz');
-    if (fs.existsSync('ioninfo.json')) fs.rmSync('ioninfo.json');
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -72,6 +92,18 @@ export async function bundlePackage(entryPoint: string) {
     const packageName = await getStringInput("enter package name: ");
     if (!packageName) throw "PACKAGE NAME NOT FOUND!";
 
+    // const version = await axios.get(`https://github.com/The-ION-Language/modules/raw/main/${packageName}.tgz`).catch(() => null).then((res) => res?.data);
+
+    fs.writeFileSync("bundleinfo.json", JSON.stringify({
+        entryPoint,
+        timeStamp: Date.now(),
+        // add versioning system later?
+    }));
+    
+    fnames.push('bundleinfo.json');
+
+    if (fs.existsSync(`${packageName}.tgz`)) fs.rmSync(`${packageName}.tgz`);
+
     await tar.c(
         {
             gzip: true,
@@ -83,6 +115,7 @@ export async function bundlePackage(entryPoint: string) {
         })
     );
 
+    fs.rmSync('bundleinfo.json');
     console.info("package compiled!\nPlease upload to https://ionlang.ion606.com/");
     process.exit(0);
 }

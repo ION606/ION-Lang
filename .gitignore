@@ -4,3 +4,4 @@ ion_modules
 temp.*
 .ionbundle/
 *.tgz
+.ioninstall
