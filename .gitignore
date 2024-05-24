@@ -5,3 +5,4 @@ temp.*
 .ionbundle/
 *.tgz
 .ioninstall
+ionbundle/

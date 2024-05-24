@@ -16,11 +16,13 @@
   "devDependencies": {
     "@types/axios": "^0.14.0",
     "@types/node": "^20.12.11",
+    "@types/shelljs": "^0.8.15",
     "typescript": "^5.4.5"
   },
   "type": "module",
   "dependencies": {
     "axios": "^1.7.2",
+    "shelljs": "^0.8.5",
     "tar": "^7.1.0",
     "tsc": "^2.0.4"
   }
