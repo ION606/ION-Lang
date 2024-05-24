@@ -1,8 +1,5 @@
 #!/bin/bash
 
-echo "THIS IS BROKEN"
-exit 1;
-
 # Clone the repository
 git clone "https://github.com/ION606/ION-Lang.git" ~
 # Change to the cloned repository directory
