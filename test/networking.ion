@@ -1,0 +1,21 @@
+let egg = 1;
+
+func add(n) {
+    return n + 1;
+}
+
+func a(txt) {
+    print(txt);
+    egg = 2;
+    /* comment */
+    const v = 3;
+    const b = add(v) / add(2);
+    print(b);
+}
+
+
+
+a("KFDLSJFLKSD");
+print("A");
+print(egg);
+print("B");

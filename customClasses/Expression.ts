@@ -1,4 +1,4 @@
-import { FunctionCall, filterByFunction } from "./Function.js";
+import { FunctionCall, callFunction, filterByFunction } from "./Function.js";
 import { customTypes, customVar, isCustomExpressionTypes, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
 
@@ -120,7 +120,7 @@ function extractOperands(expStr: string, operatorIndex: number, operator: string
  * @param {string} expStr
  * @returns number
  */
-function parseMathExpression(expStr: string, context: customTypes[], parser: parserType) {
+async function parseMathExpression(expStr: string, context: customTypes[], parser: parserType) {
     expStr = expStr.replaceAll(" ", '');
 
     const opBraceCount = expStr.length - expStr.replace("(", "").length, clsBraceCount = expStr.length - expStr.replace(")", "").length;
@@ -134,7 +134,9 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
         // this is a method (AKA a FunctionCall)
         while ((fMatch = fRegex.exec(expStr)) !== null) {
             if (fMatch.index === fRegex.lastIndex) fRegex.lastIndex++;
-            const v = new FunctionCall(fMatch[0], context, parser).ret as [customVar | Expression];
+            const fc = await callFunction(fMatch[0], context, parser)
+
+            const v = (await fc.ret) as [customVar | Expression];
 
             if (fMatch[0]) {
                 expStr = expStr.substring(0, fMatch.index) + v + expStr.substring(fMatch.index + fMatch[0].length);
@@ -154,7 +156,7 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
             // avoid infinite loops with zero-width matches
             if (match.index === regex.lastIndex) regex.lastIndex++;
 
-            const parsed = parser(match[0].substring(match[0].indexOf('(') + 1, match[0].lastIndexOf(')')), context);
+            const parsed = await parser(match[0].substring(match[0].indexOf('(') + 1, match[0].lastIndexOf(')')), context);
 
             if (isCustomExpressionTypes(parsed[0])) {
                 expStr = expStr.substring(0, match.index) + parsed[0].val + expStr.substring(match.index + match[0].length);
@@ -171,37 +173,45 @@ function parseMathExpression(expStr: string, context: customTypes[], parser: par
 }
 
 
+export async function createExpression(expStr: string, context: customTypes[], parser: parserType): Promise<Expression> {
+    const expr = new Expression(expStr, context, parser);
+
+    if (!expStr) return expr;
+
+    // deal with quotes
+    if ((/^(['"])(?:(?!(?<=\\)\1).)*\1$/).test(expStr)) {
+        expr.val = expStr.substring(1, expStr.length - 1);
+        return expr;
+    }
+
+    const isMath = ['+', '-', '/', '*'].find(symb => expStr.includes(symb));
+
+    if (isMath) {
+        expr.val = await parseMathExpression(expStr, context, parser);
+    }
+    else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {
+        // this is most likely a variable
+        const ind = findVarInd(context, expStr);
+        if (ind === -1) throw `VARIABLE "${expStr}" NOT FOUND!`;
+        expr.val = (context[ind] as customVar).val?.val;
+    }
+    else if (Array.isArray(expStr)) {
+        expr.val = expStr.split(",").map(o => o.trim());
+    }
+    else if ((/^[A-z].*\(.*\)/).test(expStr)) {
+        // this is a method (AKA a FunctionCall)
+        expr.val = (await callFunction(expStr, context, parser)).ret;
+    }
+    else if (!Number.isNaN(Number(expStr))) expr.val = Number(expStr);
+    else expr.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
+
+    return expr;
+}
+
 export class Expression {
     val: any;
 
     constructor(expStr: string, context: customTypes[], parser: parserType) {
-        if (!expStr) return;
-        
-        // deal with quotes
-        if ((/^(['"])(?:(?!(?<=\\)\1).)*\1$/).test(expStr)) {
-            this.val = expStr.substring(1, expStr.length - 1);
-            return this;
-        }
 
-        const isMath = ['+', '-', '/', '*'].find(symb => expStr.includes(symb));
-
-        if (isMath) {
-            this.val = parseMathExpression(expStr, context, parser);
-        }
-        else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {            
-            // this is most likely a variable
-            const ind = findVarInd(context, expStr);
-            if (ind === -1) throw `VARIABLE "${expStr}" NOT FOUND!`;
-            this.val = (context[ind] as customVar).val?.val;
-        }
-        else if (Array.isArray(expStr)) {
-            this.val = expStr.split(",").map(o => o.trim());
-        }
-        else if ((/^[A-z].*\(.*\)/).test(expStr)) {
-            // this is a method (AKA a FunctionCall)
-            this.val = new FunctionCall(expStr, context, parser).ret;
-        }
-        else if (!Number.isNaN(Number(expStr))) this.val = Number(expStr);
-        else this.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
     }
 }

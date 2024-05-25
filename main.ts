@@ -11,7 +11,7 @@ function main() {
 
     const [, , command, fname] = process.argv;
 
-    if (command === 'run') console.log("ret:", readAndParse(fname));
+    if (command === 'run') readAndParse(fname);
     else if (command === 'install' || command === 'i') installPackage(process.argv.slice(3));
     else if (command === 'bundle') bundlePackage(process.argv[3]);
     else throw `UNKNOWN COMMAND "${command}"!`;

@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { findVarInd, loopToClosingBracket, remQuotes } from "./customClasses/helpers.js";
-import { Include, customVar, customTypes } from './customClasses/classes.js';
-import { Expression } from "./customClasses/Expression.js";
-import { FunctionCall, customFunction } from "./customClasses/Function.js";
+import { customVar, customTypes, createInclude, createVar } from './customClasses/classes.js';
+import { createExpression } from "./customClasses/Expression.js";
+import { callFunction, customFunction } from "./customClasses/Function.js";
 import { declairators, pseudoFuncs } from "./reservedKeys.js";
 import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
@@ -15,13 +15,13 @@ import { customThrow, try_catch_throw } from './customClasses/try_catch_throw.js
  * @param {any[]} context
  * @returns 
  */
-export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirName: string, fname?: string }): customTypes[] {
+export async function parser(dataRaw: string, context: customTypes[], baseDir?: { dirName: string, fname?: string }): Promise<customTypes[]> {
     if ((/\{\s*\}/).test(dataRaw)) throw `EMPTY FUNCTIONS NOT ALLOWED!`;
 
     let splitBySC = dataRaw.split(";").filter(o => o);
     let contextFull: customTypes[] = context;
 
-    for (let i = 0; i < splitBySC.length; i++) {
+    for (let i = 0; i < splitBySC.length; i++) {        
         const toExec: customTypes[] = [];
 
         let line = splitBySC[i]?.trim(),
@@ -37,7 +37,7 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
 
         if (!key) continue;
 
-        if (key === '#include') toExec.push(...(new Include(args[0], contextFull, baseDir?.fname, baseDir?.dirName)).readContext);
+        if (key === '#include') toExec.push(...(await createInclude(args[0], contextFull, baseDir?.fname, baseDir?.dirName)).readContext);
         else if (key === 'throw') throw (new customThrow(words, context)).errstr;
         else if (key === 'try') {
             let k2 = key.substring(0, key.indexOf("{"));
@@ -53,7 +53,7 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
             }
             i--;
             
-            contextFull = try_catch_throw(conditionalChain, contextFull, parser);
+            contextFull = await try_catch_throw(conditionalChain, contextFull, parser);
         }
         else if (key.startsWith('if') || key.startsWith('else')) {
             // go until you reach the final condition
@@ -81,7 +81,7 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
                 const conditional = condFull.match(/\(([^)]*)\)/)?.at(1);
                 if (!conditional) throw `IMPROPERLY FORMATTED CONDITIONAL "${condFull}"`;
 
-                if ((/^(else)\s*?\{/).test(condFull) || handleConditional(conditional, contextFull, parser).val) {
+                if ((/^(else)\s*?\{/).test(condFull) || (await handleConditional(conditional, contextFull, parser)).val) {
                     // add to execution order
                     const body = condFull.match(/\{[^\}]*/)?.at(0)?.substring(1);
                     if (!body) throw "EMPTY CONDITIONALS NOT ALLOWED!";
@@ -96,21 +96,25 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
 
             // scan until you reach the end brace
             ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, currentBlock, i));
+            currentBlock = currentBlock.trim();
+
+            if (currentBlock.startsWith('func')) currentBlock = currentBlock.replace('func', '');
+            currentBlock = currentBlock.trim();
 
             if (pseudoFuncs.includes(key) && ['while', 'for'].includes(key)) {
-                contextFull = handleLoop(currentBlock.trim(), contextFull, parser);
+                contextFull = await handleLoop(currentBlock, contextFull, parser);
             }
             else {
-                const funcStr = currentBlock.trim();
-                toExec.push(new customFunction(funcStr, contextFull, parser));
+                toExec.push(new customFunction(currentBlock, contextFull, parser));
             }
         }
         else if ((/^[A-Za-z]([\w]+)?\s?\(/).test(line)) {
-            const f = new FunctionCall(line, contextFull, parser);
-            if (f.ret) toExec.push(f.ret);
+            const f = await callFunction(line, contextFull, parser);
+
+            if (f.ret) toExec.push(await f.ret);
         }
         else if (key === 'return') {
-            return [new Expression(args.join(' '), contextFull, parser).val];
+            return [(await createExpression(args.join(' '), contextFull, parser)).val];
         }
         else if (incSymbs.find(s => key.includes(s))) {
             const symb = incSymbs.find(s => key.includes(s));
@@ -119,7 +123,7 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
             const cvInd = findVarInd(contextFull, key.replace(symb, '').trim());
             if (cvInd == -1) throw `VARIABLE "${key}" NOT FOUND!`;
 
-            const v = new customVar([key], contextFull, (contextFull[cvInd] as customVar).type);
+            const v = await createVar([key], contextFull, (contextFull[cvInd] as customVar).type);
             contextFull[cvInd] = v;
         }
         else if (declairators.includes(key)) {
@@ -139,7 +143,7 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
                 else newWords.push(word);
             }
 
-            const cv = new customVar(newWords, contextFull, key);
+            const cv = await createVar(newWords, contextFull, key);
             const cvInd = findVarInd(contextFull, cv.name || '');
 
             if (cvInd !== -1) {
@@ -176,10 +180,10 @@ export function parser(dataRaw: string, context: customTypes[], baseDir?: { dirN
                     if (v.type === 'const') throw `CAN NOT REDECLAIR CONST VAR "${vName}"!`;
 
                     // there has to be a better way
-                    v.val = new Expression(words.join('').substring(1), contextFull, parser);
+                    v.val = await createExpression(words.join('').substring(1), contextFull, parser);
                 }
                 // this is a single operation (like math)
-                else return [new Expression(key, contextFull, parser)];
+                else return [await createExpression(key, contextFull, parser)];
             }
         }
 

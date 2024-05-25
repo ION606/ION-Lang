@@ -1,6 +1,6 @@
 import { handleConditional } from "../handleConditional.js";
 import { Expression } from "./Expression.js";
-import { customTypes, customVar, parserType } from "./classes.js";
+import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
 
 
@@ -14,7 +14,7 @@ export function handleLoop(data: string, context: customTypes[], parser: parserT
 
 
 export class CustomFor {
-    static runLoop(data: string, context: customTypes[], parser: parserType) {
+    static async runLoop(data: string, context: customTypes[], parser: parserType) {
         const conditional = data.match(/\(([^)]*)\)/)?.at(1);
 
         if (!conditional) throw `IMPROPERLY FORMATTED LOOP "${data}"`;
@@ -29,23 +29,23 @@ export class CustomFor {
         const vOld = v;
 
         // initialize the loop var
-        context = parser(sCond, context);
+        context = await parser(sCond, context);
         vInd = findVarInd(context, sCond.split(' ')[1]);
         if (vInd === -1) throw `LOOP ERROR: VARIABLE "${sCond.split(' ')[1]}" NOT FOUND!`;
         v = context[vInd] as customVar;
         
-        let runCond = handleConditional(checkCond, context, parser);
+        let runCond = await handleConditional(checkCond, context, parser);
         let i = v.val?.val;
 
         const fBody = data.substring(data.indexOf("{") + 1, data.length - 2).trim();
 
         while (runCond.val) {
-            context = parser(fBody, context);
+            context = await parser(fBody, context);
 
             // loop stuff
-            runCond = handleConditional(checkCond, context, parser);
+            runCond = await handleConditional(checkCond, context, parser);
             vInd = findVarInd(context, sCond.split(' ')[1]);
-            v = new customVar([incCond], context);
+            v = await createVar([incCond], context);
             context[vInd] = v;
             i = v.val?.val;
         }
@@ -58,17 +58,17 @@ export class CustomFor {
 
 
 export class CustomWhile {
-    static runLoop(data: string, context: customTypes[], parser: parserType) {
+    static async runLoop(data: string, context: customTypes[], parser: parserType) {
         const conditional = data.match(/\(([^)]*)\)/)?.at(1);
         if (!conditional) throw `IMPROPERLY FORMATTED LOOP "${data}"`;
 
         // throw [conditional, handleConditional(conditional, context, parser), context];
-        let runCond = handleConditional(conditional, context, parser);
+        let runCond = await handleConditional(conditional, context, parser);
         while (runCond.val) {
             const fBody = data.substring(data.indexOf("{") + 1, data.length - 2).trim();
-            context = parser(fBody, context);
+            context = await parser(fBody, context);
 
-            runCond = handleConditional(conditional, context, parser);
+            runCond = await handleConditional(conditional, context, parser);
         }
 
         return context;

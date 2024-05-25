@@ -1,7 +1,7 @@
-import { Expression } from "./Expression.js";
-import { customTypes, customVar, parserType } from "./classes.js";
+import { Expression, createExpression } from "./Expression.js";
+import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
-import { ReservedFunctions, ReservedKeys } from "../reservedKeys.js";
+import { ReservedFunctions, ReservedKeys, asyncFuncs } from "../reservedKeys.js";
 
 export class customFunction {
     fname: string;
@@ -35,59 +35,67 @@ export class FunctionCall {
     func: string;
     data: string[];
     ret: any;
+    isAsync: boolean;
 
-    // call = () => this.fPointer(this.data);
     /**
      * @param {*} data
      */
     constructor(data: any, context: customTypes[], parser: parserType) {
         this.func = data.split("(")[0].trim();
         this.data = data.split("(")[1].split(")")[0]?.split(',')?.map((o: string) => o?.trim());
-
-        // find the function
-        if (Object.keys(ReservedFunctions).includes(this.func)) {
-            const f = ReservedFunctions[this.func as keyof typeof ReservedFunctions];
-
-            // convert variables
-            const inp = this.data.map(o => {
-                if ((/^(['"]).*\1$/).test(o)) {
-                    const match = o.match(/^(['"])(.*)\1$/);
-                    if (match) return match[2];
-                    return o;
-                }
-
-                if (!Number.isNaN(Number(o))) return o;
-
-                const ind = findVarInd(context, o);
-                if (ind === -1) return new Expression(o, context, parser).val;
-
-                const v = context[ind] as customVar;
-                return v.val?.val;
-            });
-
-            this.ret = f(...inp);
-            return this;
-        }
-
-        const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === this.func)) as customFunction | undefined;
-        if (!f) throw `FUNCTION "${this.func}" NOT FOUND!`;
-
-        if (this.data) {
-            if (this.data.length < f.params.length) throw `INSUFFICIENT FUNCTION ARGUMENTS FOR "${f.fname}"`;
-
-            // overrite any variables
-            for (const pInd in f.params) {
-                const oldInd = findVarInd(context, f.params[pInd]),  // context.findIndex(o => ((o instanceof customVar) && o.name === f.params[pInd])),
-                    newVar = new customVar([f.params[pInd], '=', this.data[pInd]], context);
-                if (oldInd !== -1) {
-                    context[oldInd] = newVar;
-                }
-                else context.push(newVar);
-            }
-        }
-
-        // call the function
-        const res = parser(f.fBody, context);
-        this.ret = res;
+        this.isAsync = asyncFuncs.includes(this.func);
     }
+}
+
+
+export async function callFunction(data: any, context: customTypes[], parser: parserType) {
+    const funcObj = new FunctionCall(data, context, parser);
+
+    // find the function
+    if (funcObj.isAsync || Object.keys(ReservedFunctions).includes(funcObj.func)) {
+        const f = ReservedFunctions[funcObj.func as keyof typeof ReservedFunctions];
+
+        // convert variables
+        const inp = await Promise.all(funcObj.data.map(async o => {
+            if ((/^(['"]).*\1$/).test(o)) {
+                const match = o.match(/^(['"])(.*)\1$/);
+                if (match) return match[2];
+                return o;
+            }
+
+            if (!Number.isNaN(Number(o))) return o;
+
+            const ind = findVarInd(context, o);
+            if (ind === -1) return (await createExpression(o, context, parser)).val;
+
+            const v = context[ind] as customVar;
+            return v.val?.val;
+        }));
+
+        funcObj.ret = f(...inp);
+        return funcObj;
+    }
+
+    const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === funcObj.func)) as customFunction | undefined;
+    if (!f) throw `FUNCTION "${funcObj.func}" NOT FOUND!`;
+
+    if (funcObj.data) {
+        if (funcObj.data.length < f.params.length) throw `INSUFFICIENT FUNCTION ARGUMENTS FOR "${f.fname}"`;
+
+        // overrite any variables
+        for (const pInd in f.params) {
+            const oldInd = findVarInd(context, f.params[pInd]),  // context.findIndex(o => ((o instanceof customVar) && o.name === f.params[pInd])),
+                newVar = await createVar([f.params[pInd], '=', funcObj.data[pInd]], context);
+            if (oldInd !== -1) {
+                context[oldInd] = newVar;
+            }
+            else context.push(newVar);
+        }
+    }
+
+    // call the function
+    const res = await parser(f.fBody, context);
+    funcObj.ret = res;
+
+    return funcObj;
 }

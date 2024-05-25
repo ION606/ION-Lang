@@ -1,4 +1,4 @@
-import { Expression } from "./Expression.js";
+import { Expression, createExpression } from "./Expression.js";
 import { FunctionCall, customFunction } from "./Function.js";
 import { parser, readAndParse } from "../parser.js";
 import { findVarInd } from "./helpers.js";
@@ -7,7 +7,9 @@ import path from "path";
 import { customThrow } from "./try_catch_throw.js";
 
 export class Include {
+    //@ts-ignore
     readContext: customTypes[];
+    p: string;
 
     constructor(target: string, context: customTypes[], caller?: string, baseDir?: string) {
         const fname = target.replaceAll('"', '').replaceAll("'", '');
@@ -28,8 +30,14 @@ export class Include {
             p = path.resolve(modFolder, modEntryPoint);
         }
 
-        this.readContext = readAndParse(p, caller);
+        this.p = p;
     }
+}
+
+export async function createInclude(target: string, context: customTypes[], caller?: string, baseDir?: string) {
+    const inc = new Include(target, context, caller, baseDir);
+    inc.readContext = await readAndParse(inc.p, caller);
+    return inc;
 }
 
 
@@ -37,6 +45,12 @@ export class customVar {
     name?: string;
     val?: Expression;
     type: string;
+    #valPromise: Promise<Expression>
+
+    async finishConv() {
+        this.val = await this.#valPromise;
+        return this;
+    }
 
     constructor(inps: string[], context: customTypes[], key: string | undefined = 'let') {
         let j = inps.join("");
@@ -68,9 +82,14 @@ export class customVar {
         const strsplit = j.split('=');
 
         this.name = strsplit[0];
-        this.val = new Expression(strsplit[1], context, parser);
+        this.#valPromise = createExpression(strsplit[1], context, parser);
         // }
     }
+}
+
+export async function createVar(inps: string[], context: customTypes[], key: string | undefined = 'let') {
+    const v = new customVar(inps, context, key);
+    return await v.finishConv();
 }
 
 export class customBoolean {
@@ -79,7 +98,7 @@ export class customBoolean {
 }
 
 export interface parserType {
-    (dataRaw: string, context: customTypes[]): customTypes[]
+    (dataRaw: string, context: customTypes[]): Promise<customTypes[]>
 }
 
 

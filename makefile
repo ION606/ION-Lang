@@ -14,6 +14,10 @@ error:
 	tsc
 	node --trace-uncaught compiledJS/main.js run test/try_catch_throw.ion
 
+network:
+	tsc
+	node --trace-uncaught compiledJS/main.js run test/networking.ion
+
 install:
 	tsc
 	node --trace-uncaught compiledJS/main.js i test

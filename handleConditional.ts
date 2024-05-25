@@ -27,20 +27,20 @@ function checkCondSingle(leftSide: Expression, op: string, rightSide?: Expressio
 }
 
 
-export function handleConditional(line: string, context: customTypes[], parser: parserType): customBoolean {
+export async function handleConditional(line: string, context: customTypes[], parser: parserType): Promise<customBoolean> {
     // get symbol index
     const sInd = Array.from(line).findIndex(s => compSymbs.includes(s));
 
     const [leftSide, op, rightside] = [line.slice(0, sInd), line[sInd], line.slice(sInd + 1)];
 
-    let v = parser(leftSide, context)[0];
+    let v = (await parser(leftSide, context))[0];
     const leftVal = (isCustomVar(v)) ? v.val : (v as Expression);
 
     // handle (!thing)
     if (!leftVal) throw "NO VALUE FOUND!";
     if (!rightside) return new customBoolean(checkCondSingle(leftVal, op));
 
-    v = parser(rightside, context)[0];
+    v = (await parser(rightside, context))[0];
     const rightVal = (isCustomVar(v)) ? v.val : (v as Expression);
 
     return new customBoolean(checkCondSingle(leftVal, op, rightVal));
