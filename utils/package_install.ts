@@ -95,8 +95,6 @@ export async function bundlePackage(entryPoint: string) {
     const packageName = await getStringInput("enter package name: ");
     if (!packageName) throw "PACKAGE NAME NOT FOUND!";
 
-    // const version = await axios.get(`https://github.com/The-ION-Language/modules/raw/main/${packageName}.tgz`).catch(() => null).then((res) => res?.data);
-
     fs.writeFileSync("bundleinfo.json", JSON.stringify({
         entryPoint,
         timeStamp: Date.now(),
@@ -117,23 +115,6 @@ export async function bundlePackage(entryPoint: string) {
             fs.cp(p, path.resolve(newP, NP), resolve);
         });
     }));
-
-    /*
-    if (fs.existsSync(`${packageName}.tgz`)) fs.rmSync(`${packageName}.tgz`);
-
-    await tar.c(
-        {
-            gzip: true,
-            file: `${packageName}.tgz`
-        },
-        fnames.map(f => {
-            const NP = f.replace(process.cwd(), '');
-            return path.isAbsolute(NP) ? NP.replace(process.cwd(), '').substring(1) : NP;
-        })
-    );
-
-    fs.rmSync('bundleinfo.json');
-    */
 
     console.info(`package compiled to ${newP}\n\nPlease upload to your github and submit to https://ionlang.ion606.com/`);
     process.exit(0);
