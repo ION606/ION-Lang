@@ -22,5 +22,6 @@ function mirrorOutpToLogFile(fname?:string) {
 export function handleInstArgs(instArgs: string[]) {
     for (const arg of instArgs) {
         if (arg.startsWith('--trace')) mirrorOutpToLogFile(arg.replace('--trace', ''));
+        if (arg === '--logoutp') process.env.ionlogtooutp = '1';
     }
 }

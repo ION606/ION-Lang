@@ -10,11 +10,14 @@ function main() {
     if (instArgs.length) handleInstArgs(instArgs);
 
     const [, , command, fname] = process.argv;
-
-    if (command === 'run') readAndParse(fname);
-    else if (command === 'install' || command === 'i') installPackage(process.argv.slice(3));
-    else if (command === 'bundle') bundlePackage(process.argv[3]);
+    let r;
+    
+    if (command === 'run') r = readAndParse(fname);
+    else if (command === 'install' || command === 'i') r = installPackage(process.argv.slice(3));
+    else if (command === 'bundle') r = bundlePackage(process.argv[3]);
     else throw `UNKNOWN COMMAND "${command}"!`;
+
+    if (process.env.ionlogtooutp) r.then(o => console.log(JSON.stringify(o)));
 }
 
 main();

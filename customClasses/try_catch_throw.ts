@@ -1,5 +1,5 @@
 import { Expression } from "./Expression.js";
-import { FunctionCall, customFunction } from "./Function.js";
+import { customFunction } from "./Function.js";
 import { customTypes, customVar, isCustomVar, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
 
@@ -17,7 +17,7 @@ export async function try_catch_throw(words: string[], context: customTypes[], p
     catch (err) {
         const fname = `err_${crypto.randomUUID().replaceAll('-', '')}`;
         context.push(new customFunction(`${fname}${catchBody}`, context, parser));
-        return parser(`${fname}(${err});`, context);
+        return await parser(`${fname}(${err});`, context);
     }
 }
 

@@ -1,6 +1,6 @@
 import { FunctionCall, callFunction, filterByFunction } from "./Function.js";
 import { customTypes, customVar, isCustomExpressionTypes, parserType } from "./classes.js";
-import { findVarInd } from "./helpers.js";
+import { findVarInd, isObj } from "./helpers.js";
 
 
 function evalOperation(operandOne: number, operator: string, operandTwo: number) {
@@ -186,7 +186,12 @@ export async function createExpression(expStr: string, context: customTypes[], p
 
     const isMath = ['+', '-', '/', '*'].find(symb => expStr.includes(symb));
 
-    if (isMath) {
+    if (isObj(expStr)) expr.val = JSON.parse(expStr);
+    else if ((/^[A-z].*\((.|[\r\n])*\)$/).test(expStr)) {
+        // this is a method (AKA a FunctionCall)
+        expr.val = (await callFunction(expStr, context, parser)).ret;
+    }
+    else if (isMath) {
         expr.val = await parseMathExpression(expStr, context, parser);
     }
     else if ((/^[A-Za-z]([A-Za-z0-9]?)+$/).test(expStr)) {
@@ -197,10 +202,6 @@ export async function createExpression(expStr: string, context: customTypes[], p
     }
     else if (Array.isArray(expStr)) {
         expr.val = expStr.split(",").map(o => o.trim());
-    }
-    else if ((/^[A-z].*\(.*\)/).test(expStr)) {
-        // this is a method (AKA a FunctionCall)
-        expr.val = (await callFunction(expStr, context, parser)).ret;
     }
     else if (!Number.isNaN(Number(expStr))) expr.val = Number(expStr);
     else expr.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;

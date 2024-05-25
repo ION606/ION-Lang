@@ -7,7 +7,10 @@ export const remQuotes = (s: string) => {
     });
 }
 
-
+export function isObj(o: any) {
+    try { return JSON.parse(o) }
+    catch (err) { return false; }
+}
 
 export function filterByVar(o: customVar | customTypes): o is customVar {
     return (o instanceof customVar);
@@ -22,7 +25,7 @@ function sortInstructions(context: customTypes[]) {
 export function loopToClosingBracket(splitBySC: string[], currentBlock: string, i: number) {
     let c = 0,
         line = splitBySC[i];
-    
+
     while (line && line[c] != "}") {
         if (c > line.length) {
             currentBlock += line + ";";

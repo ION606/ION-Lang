@@ -16,7 +16,7 @@ error:
 
 network:
 	tsc
-	node --trace-uncaught compiledJS/main.js run test/networking.ion
+	node --trace-uncaught compiledJS/main.js run test/networking.ion --logoutp
 
 install:
 	tsc
