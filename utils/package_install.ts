@@ -43,8 +43,8 @@ export async function installPackage(packageNames: string[]) {
             fs.mkdirSync(folderName, { recursive: true });
 
             console.log(`fetching package...`);
-            shell.cd(folderName);
-            shell.exec(`git clone ${rURL}`);
+            // shell.cd(folderName);
+            shell.exec(`git clone ${rURL} ion_modules/${packageName}`);
             
             console.info("done!");
         }
