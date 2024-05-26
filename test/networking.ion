@@ -8,7 +8,8 @@ const a = fetch("https://catfact.ninja/fact", {
 print(a.body);
 
 const b = {
-    "pink": "NODDERS"
+    "pink": "NODDERS",
+    "1": 2
 };
 
-print(b.pink);
+print(b);

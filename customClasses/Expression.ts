@@ -178,6 +178,8 @@ export async function createExpression(expStr: string, context: customTypes[], p
 
     if (!expStr) return expr;
 
+    console.log((/^\{.*\}$/).test(expStr), expStr)
+
     // deal with quotes
     if ((/^(['"])(?:(?!(?<=\\)\1).)*\1$/).test(expStr)) {
         expr.val = expStr.substring(1, expStr.length - 1);
@@ -204,7 +206,7 @@ export async function createExpression(expStr: string, context: customTypes[], p
         expr.val = expStr.split(",").map(o => o.trim());
     }
     else if (!Number.isNaN(Number(expStr))) expr.val = Number(expStr);
-    else if ((/^\{.*\}$/).test(expStr)) expr.val = JSON.parse(expStr);
+    else if ((/^\{(.|\n|\r)*\}$/).test(expStr)) expr.val = JSON.parse(expStr);
     else expr.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
 
     return expr;
