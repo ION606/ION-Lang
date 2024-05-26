@@ -66,6 +66,20 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
 
             if (!Number.isNaN(Number(o))) return o;
 
+            // we are trying to access a property
+            if ((/^[\w]+\..*$/).test(o)) {
+                const [vName, propName] = o.split('.');
+                const ind = findVarInd(context, vName);
+                if (ind === -1) throw `UNKNOWN VARIABLE "${vName}"`;
+
+                const v = context[ind] as any;
+                const vals = v.val?.val?.val || v.val?.val || v.val;
+
+                if (!Object.keys(vals).includes(propName)) throw `PROPERTY "${propName}" NOT FOUND IN VARIABLE "${vName}"`;
+
+                return vals[propName];
+            }
+
             const ind = findVarInd(context, o);
             if (ind === -1) return (await createExpression(o, context, parser)).val;
 

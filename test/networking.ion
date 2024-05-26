@@ -1,6 +1,8 @@
-const a = fetch("https://example.com", {
-    method: "POST",
+const a = fetch("https://catfact.ninja/fact", {
+    method: "GET",
     headers: {
         myheader: "YAY"
     }
 });
+
+print(a.body);
