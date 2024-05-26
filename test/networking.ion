@@ -6,3 +6,9 @@ const a = fetch("https://catfact.ninja/fact", {
 });
 
 print(a.body);
+
+const b = {
+    "pink": "NODDERS"
+};
+
+print(b.pink);

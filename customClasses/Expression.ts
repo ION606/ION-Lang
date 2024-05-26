@@ -204,6 +204,7 @@ export async function createExpression(expStr: string, context: customTypes[], p
         expr.val = expStr.split(",").map(o => o.trim());
     }
     else if (!Number.isNaN(Number(expStr))) expr.val = Number(expStr);
+    else if ((/^\{.*\}$/).test(expStr)) expr.val = JSON.parse(expStr);
     else expr.val = expStr; // throw `UNKNOWN ASSIGNEMENT TYPE FOR "${expStr}"!`;
 
     return expr;
