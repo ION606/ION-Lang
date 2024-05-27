@@ -75,6 +75,13 @@ export class forkProcess {
 
             c?.stdout?.on('data', (m) => console.log(m.toString()));
             c?.stderr?.on('data', (m) => console.error(m.toString()));
+            
+            if (process.env.PRINTCHILDSTATUS) {
+                c?.on('spawn', () => console.info(`CHILD PROCESS ${c?.pid} SPAWNED`));
+                c?.on('close', (eCode) => console.info(`CHILD PROCESS ${c?.pid} EXITED WITH CODE ${eCode}`));
+                c?.on('disconnect', () => console.info(`CHILD PROCESS ${c?.pid} DISCONNECTED`));
+                c?.on('error', (err) => console.error(`CHILD PROCESS ${c?.pid} HAS ERRED: ${JSON.stringify(err)}`));
+            }
         });
     }
 }

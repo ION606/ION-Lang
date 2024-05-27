@@ -24,7 +24,7 @@ install:
 
 fork:
 	tsc
-	node --trace-uncaught compiledJS/main.js run test/fork.ion
+	node --trace-uncaught compiledJS/main.js run test/fork.ion --printchildstatus
 	
 bundle:
 	tsc
