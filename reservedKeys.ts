@@ -1,5 +1,5 @@
 import { customFetch } from "./customClasses/async.js";
-import { forkProcess } from "./customClasses/fork.js";
+import { wait } from "./customClasses/helpers.js";
 
 export const ReservedKeys = ['const', 'let', 'var', 'func', 'ion', 'pinknodders', 'return', 'for', 'in', 'of', 'break', 'print', 'error'];
 export const ReservedFunctions = {
@@ -7,11 +7,13 @@ export const ReservedFunctions = {
     'echo': (...inp: any) => console.log(...inp),
     'error': (...inp: any) => console.error(...inp),
     'fetch': (...inp: any) => new customFetch(inp),
-    'fork': (...inp: any) => null
+    'fork': (...inp: any) => null,
+    'wait': (...inp: any) => wait(inp)
 };
 
 export const asyncFuncs = [
-    'fetch'
+    'fetch',
+    'wait'
 ]
 
 export const declairators = ['create', 'make', 'const', 'var', 'let'];

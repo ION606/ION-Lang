@@ -50,3 +50,9 @@ export class customResponse {
         this.body = '';
     }
 }
+
+
+export class baseAsync {
+    val: Promise<any>;
+    constructor(v: Promise<any>) { this.val = v }
+}

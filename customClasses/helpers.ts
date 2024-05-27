@@ -1,4 +1,6 @@
+import { baseAsync } from "./async.js";
 import { customTypes, customVar } from "./classes.js";
+
 
 export const remQuotes = (s: string) => {
     return s.replace(/\\n|[^\\]\n/g, (match) => {
@@ -7,16 +9,20 @@ export const remQuotes = (s: string) => {
     });
 }
 
+
 export function isObj(o: any) {
     try { return JSON.parse(o) }
     catch (err) { return false; }
 }
 
+
 export function filterByVar(o: customVar | customTypes): o is customVar {
     return (o instanceof customVar);
 }
 
+
 export const findVarInd = (context: customTypes[], inpstr: string): number => context.findIndex(o => (filterByVar(o) && o.name === inpstr));
+
 
 function sortInstructions(context: customTypes[]) {
 
@@ -45,4 +51,11 @@ export function loopToClosingBracket(splitBySC: string[], currentBlock: string, 
 
     currentBlock += "}";
     return { line, currentBlock, i, splitBySC };
+}
+
+
+export function wait(...inp:any) {
+    const ms = Number(inp[0]);
+    if (Number.isNaN(ms)) throw `WAIT TIME IS NOT A VALID NUMBER (${inp[0]})`;
+    return new baseAsync(new Promise((resolve) => setTimeout((resolve), ms)))
 }

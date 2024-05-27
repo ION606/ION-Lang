@@ -5,10 +5,7 @@ import { spawn } from 'child_process';
 
 
 export async function runFromFork(splitByScStr: string, contextStr: string, fname: string) {
-    const customClasses = (await import('./classes.js')).customClasses;
-
     const contextRaw = JSON.parse(contextStr);
-
     const context = await forkProcess.deserializeContext(contextRaw);
     (await import('../parser.js')).parser(splitByScStr, context, { dirName: path.dirname(fname), fname });
 }
@@ -75,7 +72,7 @@ export class forkProcess {
 
             c?.stdout?.on('data', (m) => console.log(m.toString()));
             c?.stderr?.on('data', (m) => console.error(m.toString()));
-            
+
             if (process.env.PRINTCHILDSTATUS) {
                 c?.on('spawn', () => console.info(`CHILD PROCESS ${c?.pid} SPAWNED`));
                 c?.on('close', (eCode) => console.info(`CHILD PROCESS ${c?.pid} EXITED WITH CODE ${eCode}`));

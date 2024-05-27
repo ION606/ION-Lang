@@ -17,6 +17,9 @@ func main() {
     /* comment */
     const v = 3;
     const b = add(v) / add(2);
+
+    wait(3000);
+    
     print(b, v);
 }
 

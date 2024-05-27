@@ -2,7 +2,7 @@ import { Expression, createExpression } from "./Expression.js";
 import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
 import { ReservedFunctions, ReservedKeys, asyncFuncs } from "../reservedKeys.js";
-import { customFetch, customResponse } from "./async.js";
+import { baseAsync, customFetch, customResponse } from "./async.js";
 import { forkProcess } from "./fork.js";
 
 export class customFunction {
@@ -89,9 +89,12 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
         }));
 
         if (funcObj.isAsync) {
-            const r = new customResponse();
-            const cVal = await (f(...inp) as customFetch).val;
-            funcObj.ret = await r.constructResponse(cVal);
+            if (funcObj.func === 'fetch') {
+                const r = new customResponse();
+                const cVal = await (f(...inp) as customFetch).val;
+                funcObj.ret = await r.constructResponse(cVal);
+            }
+            else funcObj.ret = await (f(...inp) as baseAsync).val;
         }
         else funcObj.ret = f(...inp);
 
