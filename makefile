@@ -21,6 +21,10 @@ network:
 install:
 	tsc
 	node --trace-uncaught compiledJS/main.js i test
+
+fork:
+	tsc
+	node --trace-uncaught compiledJS/main.js run test/fork.ion
 	
 bundle:
 	tsc

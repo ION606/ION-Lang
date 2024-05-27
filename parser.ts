@@ -8,6 +8,7 @@ import { declairators, pseudoFuncs } from "./reservedKeys.js";
 import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
 import { customThrow, try_catch_throw } from './customClasses/try_catch_throw.js';
+import { forkProcess } from './customClasses/fork.js';
 
 
 /**
@@ -21,7 +22,7 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
     let splitBySC = dataRaw.split(";").filter(o => o);
     let contextFull: customTypes[] = context;
 
-    for (let i = 0; i < splitBySC.length; i++) {        
+    for (let i = 0; i < splitBySC.length; i++) {
         const toExec: customTypes[] = [];
 
         let line = splitBySC[i]?.trim(),
@@ -52,7 +53,7 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
                 k2 = line.trim().split(" ")[0];
             }
             i--;
-            
+
             contextFull = await try_catch_throw(conditionalChain, contextFull, parser);
         }
         else if (key.startsWith('if') || key.startsWith('else')) {
@@ -109,9 +110,13 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
             }
         }
         else if ((/^[A-Za-z]([\w]+)?\s?\(/).test(line)) {
-            const f = await callFunction(line, contextFull, parser);
-
-            if (f.ret) toExec.push(await f.ret);
+            if (line.split('(')[0].trim() === 'fork') {
+                toExec.push(new forkProcess(process.argv, contextFull, splitBySC.slice(i + 1).join(';')))
+            }
+            else {
+                const f = await callFunction(line, contextFull, parser);
+                if (f.ret) toExec.push(await f.ret);
+            }
         }
         else if (key === 'return') {
             return [(await createExpression(args.join(' '), contextFull, parser)).val];
@@ -194,7 +199,7 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
 }
 
 
-export const readAndParse = (fname: string, calledFrom?:string) => {
+export const readAndParse = (fname: string, calledFrom?: string) => {
     if (!fs.existsSync(fname)) throw `FILE "${fname}" NOT FOUND!\n(maybe you forgot to provide an absolute path?)`;
     return parser(fs.readFileSync(fname).toString(), [], { fname: (calledFrom || fname), dirName: path.dirname(fname) });
 }

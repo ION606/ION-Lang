@@ -1,0 +1,9 @@
+/* this code should print "A B B" */
+
+const a = 1;
+print("A");
+
+fork();
+
+print("B");
+const c = 12;

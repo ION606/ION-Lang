@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
+import { runFromFork } from "./customClasses/fork.js";
 import { handleInstArgs } from "./handleInstArgs.js";
-import { readAndParse } from "./parser.js";
+import { parser, readAndParse } from "./parser.js";
 import { bundlePackage, installPackage } from './utils/package_install.js'
 
 function main() {
@@ -13,6 +14,7 @@ function main() {
     let r;
     
     if (command === 'run') r = readAndParse(fname);
+    else if (command === 'fork') r = runFromFork(process.argv[3], process.argv[4], fname);
     else if (command === 'install' || command === 'i') r = installPackage(process.argv.slice(3));
     else if (command === 'bundle') r = bundlePackage(process.argv[3]);
     else throw `UNKNOWN COMMAND "${command}"!`;

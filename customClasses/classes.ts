@@ -5,6 +5,8 @@ import { findVarInd } from "./helpers.js";
 import fs from 'fs';
 import path from "path";
 import { customThrow } from "./try_catch_throw.js";
+import { customFetch } from "./async.js";
+import { forkProcess } from "./fork.js";
 
 export class Include {
     //@ts-ignore
@@ -102,7 +104,8 @@ export interface parserType {
 }
 
 
-export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean | customThrow;
+export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean | customThrow | customFetch | forkProcess;
+export const customClasses = [Include, customVar, customFunction, FunctionCall, Expression, customBoolean, customThrow, customFetch, forkProcess];
 export type customExpressionTypes = customVar | Expression;
 
 export const isCustomVar = (obj: any): obj is customVar => obj instanceof customVar;

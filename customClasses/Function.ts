@@ -3,6 +3,7 @@ import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
 import { ReservedFunctions, ReservedKeys, asyncFuncs } from "../reservedKeys.js";
 import { customFetch, customResponse } from "./async.js";
+import { forkProcess } from "./fork.js";
 
 export class customFunction {
     fname: string;
