@@ -13,11 +13,11 @@ Run: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/ION606/ION-La
 
 
 ## How to Run
-Simply use `ion run {PATH_TO_ION_FILE}`
+Simply use `ion run {PACKAGE_NAME 1} {PACKAGE_NAME 2}`
 
 
 ## How to Install Packages
-Simple use `ion install {PACKAGE_NAME}` or `ion i {PACKAGE_NAME}`
+Simple use `ion install {PACKAGE_NAME 1} {PACKAGE_NAME 2}` or `ion i {PACKAGE_NAME 1} {PACKAGE_NAME 2}`
 
 
 \- Created by ION606
