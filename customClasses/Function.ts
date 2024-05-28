@@ -1,9 +1,9 @@
-import { Expression, createExpression } from "./Expression.js";
+import { createExpression } from "./Expression.js";
 import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
 import { ReservedFunctions, ReservedKeys, asyncFuncs } from "../reservedKeys.js";
 import { baseAsync, customFetch, customResponse } from "./async.js";
-import { forkProcess } from "./fork.js";
+
 
 export class customFunction {
     fname: string;
@@ -12,7 +12,7 @@ export class customFunction {
     params: string[]
 
     constructor(funcStr: string, context: customTypes[], parser: parserType) {
-        const fHeader = funcStr.substring(0, funcStr.indexOf("{")).replace('func', '').trim();
+        const fHeader = funcStr.substring(0, funcStr.indexOf("{")).replace('fun', '').trim();
         const pstart = fHeader.indexOf('(');
 
         this.fname = fHeader.substring(0, pstart);
@@ -34,7 +34,7 @@ export function filterByFunction(o: customFunction | customTypes): o is customFu
 
 
 export class FunctionCall {
-    func: string;
+    fun: string;
     data: string[];
     ret: any;
     isAsync: boolean;
@@ -43,9 +43,9 @@ export class FunctionCall {
      * @param {*} data
      */
     constructor(data: any, context: customTypes[], parser: parserType) {
-        this.func = data.split("(")[0].trim();
+        this.fun = data.split("(")[0].trim();
         this.data = data.split("(")[1].split(")")[0]?.split(',')?.map((o: string) => o?.trim());
-        this.isAsync = asyncFuncs.includes(this.func);
+        this.isAsync = asyncFuncs.includes(this.fun);
     }
 }
 
@@ -54,8 +54,8 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
     const funcObj = new FunctionCall(data, context, parser);
 
     // find the function
-    if (funcObj.isAsync || Object.keys(ReservedFunctions).includes(funcObj.func)) {
-        const f = ReservedFunctions[funcObj.func as keyof typeof ReservedFunctions];
+    if (funcObj.isAsync || Object.keys(ReservedFunctions).includes(funcObj.fun)) {
+        const f = ReservedFunctions[funcObj.fun as keyof typeof ReservedFunctions];
 
         // convert variables
         const inp = await Promise.all(funcObj.data.map(async o => {
@@ -89,7 +89,7 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
         }));
 
         if (funcObj.isAsync) {
-            if (funcObj.func === 'fetch') {
+            if (funcObj.fun === 'fetch') {
                 const r = new customResponse();
                 const cVal = await (f(...inp) as customFetch).val;
                 funcObj.ret = await r.constructResponse(cVal);
@@ -101,8 +101,8 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
         return funcObj;
     }
 
-    const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === funcObj.func)) as customFunction | undefined;
-    if (!f) throw `FUNCTION "${funcObj.func}" NOT FOUND!`;
+    const f: customFunction | undefined = context.find(o => (filterByFunction(o) && o.fname === funcObj.fun)) as customFunction | undefined;
+    if (!f) throw `FUNCTION "${funcObj.fun}" NOT FOUND!`;
 
     if (funcObj.data) {
         if (funcObj.data.length < f.params.length) throw `INSUFFICIENT FUNCTION ARGUMENTS FOR "${f.fname}"`;

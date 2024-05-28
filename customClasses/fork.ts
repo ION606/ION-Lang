@@ -3,7 +3,6 @@ import { customTypes } from "./classes.js";
 import { spawn } from 'child_process';
 
 
-
 export async function runFromFork(splitByScStr: string, contextStr: string, fname: string) {
     const contextRaw = JSON.parse(contextStr);
     const context = await forkProcess.deserializeContext(contextRaw);

@@ -1,4 +1,4 @@
-func temp() {
+fun temp() {
     print("INCLUDED!");
 }
 

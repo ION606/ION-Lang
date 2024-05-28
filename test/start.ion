@@ -1,11 +1,11 @@
 #include "test";
 
-func add(a) {
+fun add(a) {
     return a + 1;
 }
 
 
-func main() {
+fun main() {
     var a = (2 + 3) - ((1 + 1) + (1 + 1));
     a = 12;
     

@@ -1,4 +1,4 @@
-import { FunctionCall, callFunction, filterByFunction } from "./Function.js";
+import { callFunction, filterByFunction } from "./Function.js";
 import { customTypes, customVar, isCustomExpressionTypes, parserType } from "./classes.js";
 import { findVarInd, isObj } from "./helpers.js";
 

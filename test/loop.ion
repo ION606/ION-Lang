@@ -1,7 +1,7 @@
 let i = 5;
 i++;
 
-func a(txt) {
+fun a(txt) {
     print(txt);
 }
 

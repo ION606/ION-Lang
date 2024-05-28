@@ -92,14 +92,14 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
                 }
             }
         }
-        else if (key === 'func' || pseudoFuncs.includes(key.split('(')[0])) {
+        else if (key === 'fun' || pseudoFuncs.includes(key.split('(')[0])) {
             // removed (/^[A-Za-z]([\w]+)?\s?\(/).test(line) && because 
 
             // scan until you reach the end brace
             ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, currentBlock, i));
             currentBlock = currentBlock.trim();
 
-            if (currentBlock.startsWith('func')) currentBlock = currentBlock.replace('func', '');
+            if (currentBlock.startsWith('fun')) currentBlock = currentBlock.replace('fun', '');
             currentBlock = currentBlock.trim();
 
             if (pseudoFuncs.includes(key) && ['while', 'for'].includes(key)) {

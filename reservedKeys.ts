@@ -1,7 +1,7 @@
 import { customFetch } from "./customClasses/async.js";
 import { wait } from "./customClasses/helpers.js";
 
-export const ReservedKeys = ['const', 'let', 'var', 'func', 'ion', 'pinknodders', 'return', 'for', 'in', 'of', 'break', 'print', 'error'];
+export const ReservedKeys = ['const', 'let', 'var', 'fun', 'ion', 'pinknodders', 'return', 'for', 'in', 'of', 'break', 'print', 'error'];
 export const ReservedFunctions = {
     'print': (...inp: any) => console.log(...inp),
     'echo': (...inp: any) => console.log(...inp),

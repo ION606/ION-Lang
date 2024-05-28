@@ -1,5 +1,4 @@
 import { handleConditional } from "../handleConditional.js";
-import { Expression } from "./Expression.js";
 import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
 

@@ -1,7 +1,6 @@
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import * as tar from 'tar';
 import * as readline from 'readline';
 import shell from 'shelljs';
 
