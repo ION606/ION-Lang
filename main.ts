@@ -2,7 +2,7 @@
 
 import { runFromFork } from "./customClasses/fork.js";
 import { handleInstArgs } from "./handleInstArgs.js";
-import { parser, readAndParse } from "./parser.js";
+import { readAndParse } from "./parser.js";
 import { bundlePackage, installPackage } from './utils/package_install.js'
 
 function main() {
