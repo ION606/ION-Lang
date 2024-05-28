@@ -22,6 +22,10 @@ install:
 	tsc
 	node --trace-uncaught compiledJS/main.js i test
 
+uninstall:
+	tsc
+	node --trace-uncaught compiledJS/main.js u test
+
 fork:
 	tsc
 	node --trace-uncaught compiledJS/main.js run test/fork.ion --printchildstatus

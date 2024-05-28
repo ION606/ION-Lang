@@ -3,7 +3,7 @@
 import { runFromFork } from "./customClasses/fork.js";
 import { handleInstArgs } from "./handleInstArgs.js";
 import { readAndParse } from "./parser.js";
-import { bundlePackage, installPackage } from './utils/package_install.js'
+import { bundlePackage, installPackage, removePackage } from './utils/package_install.js'
 
 function main() {
     if (process.argv.length < 4) throw "INSUFFICIENT ARGUMENTS!";
@@ -16,6 +16,7 @@ function main() {
     if (command === 'run') r = readAndParse(fname);
     else if (command === 'fork') r = runFromFork(process.argv[3], process.argv[4], fname);
     else if (command === 'install' || command === 'i') r = installPackage(process.argv.slice(3));
+    else if (command === 'uninstall' || command === 'u') r = removePackage(process.argv.slice(3));
     else if (command === 'bundle') r = bundlePackage(process.argv[3]);
     else throw `UNKNOWN COMMAND "${command}"!`;
 

@@ -32,25 +32,47 @@ export async function installPackage(packageNames: string[]) {
             console.info(`fetching package "${packageName}"...`);
             const rAPIURL = await axios.get(`https://api.github.com/repos/The-ION-Language/modules/contents/modules/${packageName}.json`)
                 .then(d => JSON.parse(atob(d.data.content).toString()).repourl)
-                .catch (_ => null);
+                .catch(_ => null);
 
             // desperately avoid making another api call
             const rURL = rAPIURL.replace('/contents/bundleinfo.json', '').replace('api.', '').replace('/repos', '') + '.git';
 
             console.info('cleaning up previous package...');
-            const folderName = path.join(process.cwd(), `ion_modules/${packageName}`)
+            const folderName = path.join(process.cwd(), `ion_modules/${packageName}`);
             if (fs.existsSync(folderName)) fs.rmSync(folderName, { recursive: true });
             fs.mkdirSync(folderName, { recursive: true });
 
             console.log(`fetching package...`);
             // shell.cd(folderName);
             shell.exec(`git clone ${rURL} ion_modules/${packageName}`);
-            
+
             console.info("done!");
         }
         catch (err) {
             console.error(err);
             console.error(`UNABLE TO GET MODULE "${packageName}"`);
+        }
+    }
+}
+
+
+export async function removePackage(packageNames: string[]) {
+    for (const packageName of packageNames) {
+        try {
+            console.log(`Removing package "${packageName}"`);
+            const folderName = path.join(process.cwd(), `ion_modules/${packageName}`);
+
+            if (!fs.existsSync(folderName)) {
+                console.log('Done!');
+                continue;
+            }
+
+            fs.rmSync(folderName, { recursive: true });
+            console.log('Done!');
+        }
+        catch (err) {
+            console.error(err);
+            console.error(`UNABLE TO REMOVE MODULE "${packageName}"`);
         }
     }
 }
