@@ -23,6 +23,9 @@ fun main() {
     print(b, v);
 }
 
+const a = input("hihiiiiiii");
+print(a);
+
 const b = "hi there!";
 error(b);
 main();

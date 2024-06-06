@@ -1,6 +1,7 @@
 import { baseAsync } from "./async.js";
 import { customTypes, customVar } from "./classes.js";
 import { customClass } from "./obj.js";
+import readline from "node:readline";
 
 
 export const remQuotes = (s: string) => {
@@ -68,5 +69,19 @@ export function loopToClosingBracket(splitBySC: string[], currentBlock: string, 
 export function wait(...inp: any) {
     const ms = Number(inp[0]);
     if (Number.isNaN(ms)) throw `WAIT TIME IS NOT A VALID NUMBER (${inp[0]})`;
-    return new baseAsync(new Promise((resolve) => setTimeout((resolve), ms)))
+    return new baseAsync(new Promise((resolve) => setTimeout((resolve), ms)));
+}
+
+export function input(...inp: any) {
+    return new baseAsync(new Promise((resolve) => {
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout,
+        });
+
+        rl.question(inp.join(' '), res => {
+            resolve(res);
+            rl.close();
+        });
+    }));
 }
