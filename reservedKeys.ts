@@ -1,13 +1,13 @@
 import { customFetch } from "./customClasses/async.js";
 import { wait } from "./customClasses/helpers.js";
 
-export const ReservedKeys = ['const', 'let', 'var', 'fun', 'ion', 'pinknodders', 'return', 'for', 'in', 'of', 'break', 'print', 'error'];
+export const ReservedKeys = ['const', 'let', 'var', 'internal', 'external', 'fun', 'ion', 'pinknodders', 'return', 'for', 'in', 'of', 'break', 'print', 'error', 'me'];
 export const ReservedFunctions = {
     'print': (...inp: any) => console.log(...inp),
     'echo': (...inp: any) => console.log(...inp),
     'error': (...inp: any) => console.error(...inp),
     'fetch': (...inp: any) => new customFetch(inp),
-    'fork': (...inp: any) => null,
+    'fork': (..._: any) => null,
     'wait': (...inp: any) => wait(inp)
 };
 
@@ -16,7 +16,7 @@ export const asyncFuncs = [
     'wait'
 ]
 
-export const declairators = ['create', 'make', 'const', 'var', 'let'];
+export const declairators = ['create', 'make', 'const', 'var', 'let', 'internal', 'external'];
 export const pseudoFuncs = ['while', 'for', 'if', 'else', 'break'];
 export const trycatchthrowKeys = ['try', 'catch', 'throw'];
 

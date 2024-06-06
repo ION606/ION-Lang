@@ -9,6 +9,7 @@ import { incSymbs, handleConditional } from './handleConditional.js';
 import { handleLoop } from './customClasses/Loops.js';
 import { customThrow, try_catch_throw } from './customClasses/try_catch_throw.js';
 import { forkProcess } from './customClasses/fork.js';
+import { createCustomClass } from './customClasses/obj.js';
 
 
 /**
@@ -109,6 +110,10 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
                 toExec.push(new customFunction(currentBlock, contextFull, parser));
             }
         }
+        else if (key === 'obj') {
+            ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, currentBlock, i, '>!'));            
+            toExec.push(await createCustomClass(currentBlock.trim(), parser));
+        }
         else if ((/^[A-Za-z]([\w]+)?\s?\(/).test(line)) {
             if (line.split('(')[0].trim() === 'fork') {
                 toExec.push(new forkProcess(process.argv, contextFull, splitBySC.slice(i + 1).join(';')))
@@ -159,20 +164,7 @@ export async function parser(dataRaw: string, context: customTypes[], baseDir?: 
         else {
             // check for useless code
             if (key.startsWith('/*')) {
-                // go until the comment is done
-                let c = 0;
-                while (!(line[c] === '*' && line[c + 1] === '/')) {
-                    if (c > line.length) {
-                        c = 0;
-                        i++;
-                        line = splitBySC[i];
-                    }
-                    else
-                        c++;
-                }
-                if (c > 0) {
-                    splitBySC.splice(i + 1, 0, line.substring(c + 2));
-                }
+                ({ line, currentBlock, i, splitBySC } = loopToClosingBracket(splitBySC, currentBlock, i, '*/'));
             }
             else {
                 if ((/^\w+\s?\=\s?.+/).test(line.trim())) {

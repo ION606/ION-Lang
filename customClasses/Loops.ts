@@ -1,6 +1,7 @@
 import { handleConditional } from "../handleConditional.js";
 import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
+import { customClass } from "./obj.js";
 
 
 export function handleLoop(data: string, context: customTypes[], parser: parserType): any {
@@ -34,6 +35,8 @@ export class CustomFor {
         v = context[vInd] as customVar;
         
         let runCond = await handleConditional(checkCond, context, parser);
+
+        if (v.val instanceof customClass) throw "LOOP CONDITIONS WITH CUSTOM CLASS NOT SUPPORTED YET!";
         let i = v.val?.val;
 
         const fBody = data.substring(data.indexOf("{") + 1, data.length - 2).trim();
@@ -46,6 +49,8 @@ export class CustomFor {
             vInd = findVarInd(context, sCond.split(' ')[1]);
             v = await createVar([incCond], context);
             context[vInd] = v;
+
+            // @ts-ignore
             i = v.val?.val;
         }
 

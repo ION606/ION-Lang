@@ -2,11 +2,12 @@ import { Expression, createExpression } from "./Expression.js";
 import { FunctionCall, customFunction } from "./Function.js";
 import { parser, readAndParse } from "../parser.js";
 import { findVarInd } from "./helpers.js";
-import fs from 'fs';
+import fs, { appendFile } from 'fs';
 import path from "path";
 import { customThrow } from "./try_catch_throw.js";
 import { customFetch } from "./async.js";
 import { forkProcess } from "./fork.js";
+import { customClass } from "./obj.js";
 
 export class Include {
     //@ts-ignore
@@ -45,9 +46,9 @@ export async function createInclude(target: string, context: customTypes[], call
 
 export class customVar {
     name?: string;
-    val?: Expression;
+    val?: Expression | customClass;
     type: string;
-    #valPromise: Promise<Expression>
+    #valPromise: Promise<Expression | customClass>
 
     async finishConv() {
         this.val = await this.#valPromise;
@@ -58,6 +59,18 @@ export class customVar {
         let j = inps.join("");
         this.type = key;
 
+        if ((/\b([a-zA-Z_$][a-zA-Z0-9_$]?)\s*@\s*([a-zA-Z_$][a-zA-Z0-9_$]?)\s*=\s*(.+)/).test(j)) {
+            const [_, vName, oType, oConstructor] = j.match(/(.+)@(.+)=(.+)/) || [];
+            const vInd = findVarInd(context, oType);
+            if (vInd === -1) throw `OBJECT "${oType}" NOT FOUND!`;
+
+            const o = context[vInd] as customClass;
+            this.#valPromise = o.runConstructor(context, oConstructor, parser);
+            this.name = vName;
+
+            return;
+        }
+
         // check if it's just "name = thing"; (breaks everything)
         // if ((/^[A-Za-z]+\=.*/).test(j)) {
         const regexIncrement = /\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\+\+/g;
@@ -66,13 +79,16 @@ export class customVar {
         // Replace function for i++
         const replacerIncrement = (_: any, variable: string) => {
             const vInd = findVarInd(context, variable);
-            return `${variable}=${(context[vInd] as customVar).val?.val}+1`;
+            const v = (context[vInd] as customVar);
+            return `${variable}=${(v.val instanceof Expression) ? v.val?.val : 0}+1`;
         };
 
         // Replace function for compound assignment operators
         const replacerCompound = (_: any, variable: string, operator: string, value: any) => {
             const vInd = findVarInd(context, variable);
-            return `${variable}=${(context[vInd] as customVar).val?.val}${operator}${value}`;
+            const v = (context[vInd] as customVar);
+            
+            return `${variable}=${(v.val instanceof Expression) ? v.val?.val : 0}${operator}${value}`;
         };
 
         // Replace all occurrences of i++
@@ -104,12 +120,13 @@ export interface parserType {
 }
 
 
-export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean | customThrow | customFetch | forkProcess;
+export type customTypes = Include | customVar | customFunction | FunctionCall | Expression | customBoolean | customThrow | customFetch | forkProcess | customClass;
 export const customClasses = [Include, customVar, customFunction, FunctionCall, Expression, customBoolean, customThrow, customFetch, forkProcess];
 export type customExpressionTypes = customVar | Expression;
 
 export const isCustomVar = (obj: any): obj is customVar => obj instanceof customVar;
 export const isExpression = (obj: any): obj is Expression => obj instanceof Expression;
+export const isCustomFunction = (obj: any): obj is customFunction => obj instanceof customFunction;
 
 export function isCustomExpressionTypes(obj: any): obj is customExpressionTypes {
     return isCustomVar(obj) || isExpression(obj);

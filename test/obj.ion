@@ -1,0 +1,24 @@
+obj o = !<
+    internal f = 12;
+    external a = f;
+
+    fun o(txt) {
+        const b = txt + 1;
+        const c = me.f * b;
+    }
+>!
+
+const a @ o = o(12, 21, 22, (94359), "A");
+
+/*
+obj o2 = !<
+    internal f = 11;
+
+    fun o2(txt) {
+        self.o = txt;
+    }
+>!
+print(o - o2);
+*/
+
+print(a.f);

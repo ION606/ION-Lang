@@ -1,5 +1,6 @@
 import { Expression } from './customClasses/Expression.js';
 import { customBoolean, customTypes, customVar, isCustomVar, parserType } from './customClasses/classes.js';
+import { customClass } from './customClasses/obj.js';
 
 
 export const compSymbs = ['==', '<', '>', '>=', '<=', '!=', '!'];
@@ -36,12 +37,21 @@ export async function handleConditional(line: string, context: customTypes[], pa
     let v = (await parser(leftSide, context))[0];
     const leftVal = (isCustomVar(v)) ? v.val : (v as Expression);
 
+    v = (await parser(rightside, context))[0];
+    const rightVal = (isCustomVar(v)) ? v.val : (v as Expression);
+
+    if (leftVal instanceof customClass || rightVal instanceof customClass) {
+        if (!(leftVal instanceof customClass && rightVal instanceof customClass)) return new customBoolean(false);
+
+        for (const v in leftVal) {
+            if (!(v in rightVal && rightVal[v as keyof customClass] === leftVal[v as keyof customClass])) return new customBoolean(false);
+        }
+        return new customBoolean(true);
+    }
+
     // handle (!thing)
     if (!leftVal) throw "NO VALUE FOUND!";
     if (!rightside) return new customBoolean(checkCondSingle(leftVal, op));
-
-    v = (await parser(rightside, context))[0];
-    const rightVal = (isCustomVar(v)) ? v.val : (v as Expression);
 
     return new customBoolean(checkCondSingle(leftVal, op, rightVal));
 }

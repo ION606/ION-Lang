@@ -25,6 +25,10 @@ install:
 uninstall:
 	tsc
 	node --trace-uncaught compiledJS/main.js u test
+	
+obj:
+	tsc
+	node --trace-uncaught compiledJS/main.js run test/obj.ion --logoutp
 
 fork:
 	tsc

@@ -1,8 +1,9 @@
-import { createExpression } from "./Expression.js";
+import { Expression, createExpression } from "./Expression.js";
 import { createVar, customTypes, customVar, parserType } from "./classes.js";
 import { findVarInd as findVarInd } from "./helpers.js";
 import { ReservedFunctions, ReservedKeys, asyncFuncs } from "../reservedKeys.js";
 import { baseAsync, customFetch, customResponse } from "./async.js";
+import { customClass } from "./obj.js";
 
 
 export class customFunction {
@@ -67,14 +68,22 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
 
             if (!Number.isNaN(Number(o))) return o;
 
-            // we are trying to access a property
+            // trying to access a property
             if ((/^[\w]+\..*$/).test(o)) {
                 const [vName, propName] = o.split('.');
                 const ind = findVarInd(context, vName);
                 if (ind === -1) throw `UNKNOWN VARIABLE "${vName}"`;
 
                 const v = context[ind] as any;
-                const vals = v.val?.val?.val || v.val?.val || v.val;
+                let vals;
+
+                if (v.val instanceof customClass) {
+                    // TODO: check the type and the caller for internal variables
+                    const vInd = findVarInd(v.val.customVars, propName);
+                    if (vInd === -1) throw `CLASS VARIABLE "${propName}" NOT FOUND IN CLASS "${v.val.cname}"!`;
+                    return v.val.customVars[vInd];
+                }
+                else vals = v.val?.val?.val || v.val?.val || v.val;
 
                 if (!Object.keys(vals).includes(propName)) throw `PROPERTY "${propName}" NOT FOUND IN VARIABLE "${vName}"`;
 
@@ -85,7 +94,7 @@ export async function callFunction(data: any, context: customTypes[], parser: pa
             if (ind === -1) return (await createExpression(o, context, parser)).val;
 
             const v = context[ind] as customVar;
-            return v.val?.val;
+            return (v.val instanceof Expression) ? v.val?.val : 0;
         }));
 
         if (funcObj.isAsync) {

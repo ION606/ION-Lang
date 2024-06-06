@@ -1,6 +1,7 @@
 import { callFunction, filterByFunction } from "./Function.js";
 import { customTypes, customVar, isCustomExpressionTypes, parserType } from "./classes.js";
 import { findVarInd, isObj } from "./helpers.js";
+import { customClass } from "./obj.js";
 
 
 function evalOperation(operandOne: number, operator: string, operandTwo: number) {
@@ -100,6 +101,7 @@ function extractOperands(expStr: string, operatorIndex: number, operator: string
             if (vInd === -1) throw `VARIABLE "${inpstr}" NOT FOUND!`;
 
             const v = context[vInd] as customVar;
+            if (v.val instanceof customClass) return '';
             return v.val?.val || "";
         }
         else return inpstr;
@@ -198,6 +200,8 @@ export async function createExpression(expStr: string, context: customTypes[], p
         // this is most likely a variable
         const ind = findVarInd(context, expStr);
         if (ind === -1) throw `VARIABLE "${expStr}" NOT FOUND!`;
+
+        // @ts-ignore CHANGE THIS LATER FFS
         expr.val = (context[ind] as customVar).val?.val;
     }
     else if (Array.isArray(expStr)) {

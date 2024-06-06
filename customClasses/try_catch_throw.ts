@@ -2,6 +2,7 @@ import { Expression } from "./Expression.js";
 import { customFunction } from "./Function.js";
 import { customTypes, customVar, isCustomVar, parserType } from "./classes.js";
 import { findVarInd } from "./helpers.js";
+import { customClass } from "./obj.js";
 
 export async function try_catch_throw(words: string[], context: customTypes[], parser: parserType) {
     // parse in the "try/catch" format
@@ -31,7 +32,10 @@ export class customThrow {
             if (ind === -1) return i;
             else {
                 const v = context[ind] as customVar | Expression;
-                return (isCustomVar(v) ? v.val?.val : v.val);
+                if (isCustomVar(v)) {
+                    return (v.val instanceof customClass) ? JSON.stringify(v.val) : v.val?.val;
+                }
+                else return v.val;
             }
         }).join(" ");
     }
